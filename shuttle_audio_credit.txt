@@ -1,0 +1,25 @@
+        // Arcade Music Loop.wav by joshuaempyre on freesound.org
+        // https://freesound.org/people/joshuaempyre/sounds/251461/
+        // Adjusted so that the volume is 20% of the original
+
+    // Jump_C_05.wav by cabled_mess on freesound.org
+    // https://freesound.org/people/cabled_mess/sounds/350905/
+
+// Tennis racket_whoosh.wav by speedygonzo on freesound.org
+// https://freesound.org/people/speedygonzo/sounds/235727/
+// Cutted so that only the second last swing that plays
+
+Badminton.wav by PerMagnusLindborg on freesound.org
+https://freesound.org/people/PerMagnusLindborg/sounds/324244/
+Cutted so that it plays a little bit faster
+
+8-bit damage sound.wav by EVRetro on freesound.org
+https://freesound.org/people/EVRetro/sounds/501104/
+Cutted so that it ends earlier
+
+retro taking damage sfx.wav by stumpbutt on freesound.org
+https://freesound.org/people/stumpbutt/sounds/629656/
+
+8-bit Explosion2.aiff by timgormly on freesound.org
+https://freesound.org/people/EVRetro/sounds/501104/
+Converted to 24bit pcm wav
