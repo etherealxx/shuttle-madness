@@ -1,5 +1,9 @@
 # Shuttle Madness
  OpenGL C++ game made with glut.h, [stb_image.h](https://github.com/nothings/stb) and [miniaudio.h](https://github.com/mackron/miniaudio). Third semester final project. For Windows only. The point of this project is to use only single file header libraries (other than GLUT and standard library) to make a presentable arcade game.
+<!--- ![image](https://github.com/etherealxx/shuttle-madness/assets/64251396/0bc9834d-fad1-4e6c-aa57-82a3e6d8e951) -->
+<p align="center">
+  <img src="https://github.com/etherealxx/shuttle-madness/assets/64251396/0bc9834d-fad1-4e6c-aa57-82a3e6d8e951" alt="shuttle-madness" width="500"/>
+</p>
 
 ## Workspace Setup (VSCode, the easy way)
 - Clone this repository
