@@ -1,3 +1,5 @@
 .history/
 .vscode/
 mingw32/
+build/
+shuttle_build.evb
