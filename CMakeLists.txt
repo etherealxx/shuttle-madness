@@ -11,6 +11,9 @@ file(GLOB HEADERS "*.h")
 # Add resource files
 file(GLOB RESOURCES "*.wav" "*.png")
 
+# Add dll files
+file(GLOB DLL_FILES "*.dll")
+
 # Find OpenGL and GLUT packages
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
@@ -29,4 +32,9 @@ target_link_libraries(ShuttleMadness PRIVATE OpenGL::GL GLUT::GLUT)
 # Copy resource files to the build directory
 foreach(RESOURCE ${RESOURCES})
     configure_file(${RESOURCE} ${CMAKE_BINARY_DIR} COPYONLY)
+endforeach()
+
+# Copy dll files to the build directory
+foreach(DLL_FILE ${DLL_FILES})
+    configure_file(${DLL_FILE} ${CMAKE_BINARY_DIR} COPYONLY)
 endforeach()

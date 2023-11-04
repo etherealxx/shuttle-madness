@@ -1,9 +1,9 @@
 # Shuttle Madness
  OpenGL C++ game made with glut.h, [stb_image.h](https://github.com/nothings/stb) and [miniaudio.h](https://github.com/mackron/miniaudio). Third semester final project. For Windows only. The point of this project is to use only single file header libraries (other than GLUT and standard library) to make a presentable arcade game.
 <!--- ![image](https://github.com/etherealxx/shuttle-madness/assets/64251396/0bc9834d-fad1-4e6c-aa57-82a3e6d8e951) -->
-<p align="center">
+<!-- <p align="center">
   <img src="https://github.com/etherealxx/shuttle-madness/assets/64251396/0bc9834d-fad1-4e6c-aa57-82a3e6d8e951" alt="shuttle-madness" width="500"/>
-</p>
+</p> -->
 
 ## Workspace Setup (VSCode, the easy way)
 - Clone this repository
@@ -16,6 +16,12 @@
 ## Running the game
 - Open `shuttle_madness.cpp`
 - Click the `Run++` button on the top right, OR press Alt + B
+
+#### Controls
+- WASD controls: `W` to jump/double jump. `S` to fastfall/crouch.
+- `Space` to swing the racket
+- Immediately jumping after releasing crouch button will result in high jump.
+- Hit the pink shuttlecock to score point, dodge the gray shuttlecock, and don't hit the yellow shuttlecock.
 
 ## Building the game
 - Download cmake from [here](https://cmake.org/download/) and install it. (Choose the Windows x64 Installer, recommended to install for all user).
@@ -80,6 +86,7 @@ Cutted so that only the first part is used
 - [GLUT](https://www.opengl.org/resources/libraries/glut/glut_downloads.php)
 - [stb_image](https://github.com/nothings/stb)
 - [miniaudio](https://github.com/mackron/miniaudio)
+- [FreeGLUT](https://github.com/FreeGLUTProject/freeglut)
 
 ## Special Thanks
 - Ikhsan Ridwan who made the `shuttle_knight.png` sprite

@@ -45,7 +45,7 @@ if os.path.exists(build_folder_path) and os.path.isdir(build_folder_path):
         <Files>\n"""
     
     # Define the list of file extensions to search for
-    file_extensions = [".png", ".wav"]
+    file_extensions = [".png", ".wav", ".dll"]
 
     # Iterate over the files in the build folder with specified extensions
     for file in os.listdir(build_folder_path):
