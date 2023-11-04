@@ -208,11 +208,11 @@ public:
     float initheight;
     bool knightMode;
 
-    PlayerHitbox(float playerX, float playerY, float playerSizeY, bool isKnight = false) {
+    PlayerHitbox(float initplayerX, float initplayerY, float initplayerSizeY, bool isKnight = false) {
         // check if the knight sprite is loaded, then adjust the values
         knightMode = isKnight;
-        x = playerX + (knightMode ? 0.0f : 0.2f);
-        y = playerY;
+        x = initplayerX + (knightMode ? 0.0f : 0.2f);
+        y = initplayerY - (knightMode ? 0.5f : 0.0f);
         width = (knightMode ? 1.0f : 0.83f); // - 0.2f for non knight
         height = (knightMode ? 1.0f : 0.8f); // Adjust the height as needed
         initheight = height;
@@ -226,7 +226,7 @@ public:
             shuttlecock.y - 0.15f < y + height / 2);
     }
 
-    void drawDummy() {
+    void drawDummy() { //doesn't work as expected
         glPushMatrix();
         glColor3f(0.0f, 1.0f, 0.0f); // Green color
         glTranslatef(playerX, playerY, 0.0f);
@@ -248,13 +248,13 @@ public:
     }
 
     void update() {
-        x = playerX;
-        y = playerY;
+        x = playerX + (knightMode ? 0.0f : 0.2f);;
+        y = playerY + (knightMode ? 0.4f : 0.0f);;
         height = initheight * playerSizeY;
     }
 };
 
-void initializeShuttlecocks() {
+void initializeShuttlecocks() { // early debugging
     for (int i = 0; i < 10; i++) {
         float initialX = 9.5f;
         float initialY = 0.5f + 0.3f * i;
@@ -266,10 +266,11 @@ void initializeShuttlecocks() {
 }
 
 // void spawnShuttlecock(std::string alternate = "") {
-void spawnShuttlecock(int initialFlags = 0) {
-    float initialX = 10.5f;
+void spawnShuttlecock(int initialFlags = 0, float initialX = 10.5f, float initialY = -9.9f) {
     // Randomize the y coordinate between 0.1 and 5.8
-    float initialY = 0.1f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) / 5.7f);
+    if (initialY == -9.9f) { // default then randomize
+        initialY = 0.1f + static_cast<float>(rand()) / (static_cast<float>(RAND_MAX) / 5.7f);
+    }
     float initialSpeed = 0.07f; // REMEMBER to change back to 0.07
     float initialAngle = 90.0f;
     // float initialBlack = (alternate == "black") ? true : false;

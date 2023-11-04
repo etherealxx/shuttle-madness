@@ -19,6 +19,7 @@ public:
     ma_device device;
     bool looping = false;
     bool initOnly = false;
+    bool forceStop = false;
     string audioFilename;
     int flags;
     ma_uint64 totalFramesPlayed;  // New member to track frames played for this sound.
@@ -32,6 +33,10 @@ public:
         }
         everySound.push_back(this);
     }
+
+    // void stopLoop() { // moved down for consistency
+    //     forceStop = true;
+    // }
 
     static vector<Sound*> everySound;
 };
@@ -74,6 +79,10 @@ void data_callback(ma_device* pDevice, void* pOutput, const void* pInput, ma_uin
     else {
         while (frameCount > 0) {
             ma_uint64 framesRemaining = audioLengthInFrames - pSound->totalFramesPlayed;
+            if (pSound->forceStop) {
+                framesRemaining = 0;
+                break;
+            }
             if (pSound->initOnly) {
                 pSound->initOnly = false;
                 break;
@@ -165,6 +174,16 @@ void playAudioOnClick(Sound& sound) {
         sound.totalFramesPlayed = 0;
         ma_decoder_seek_to_pcm_frame(&sound.decoder, 0);
     }
+}
+
+void stopLoop(Sound& sound) {
+    sound.forceStop = true;
+}
+
+void restoreLoop(Sound& sound) {
+    sound.forceStop = false;
+    sound.totalFramesPlayed = 0;
+    ma_decoder_seek_to_pcm_frame(&sound.decoder, 0);
 }
 
 #endif

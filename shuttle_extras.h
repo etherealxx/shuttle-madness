@@ -273,7 +273,7 @@ void drawRotatedQuad(float anchorX, float anchorY, float width, float height, fl
     glPopMatrix();
 }
 
-void drawText(float x, float y, std::string texttotype) {
+void drawText(float x, float y, std::string texttotype, void* font = GLUT_BITMAP_9_BY_15) {
     glPushMatrix();
     glColor3f(1.0f, 1.0f, 1.0f);
     // Display each line of text
@@ -281,7 +281,7 @@ void drawText(float x, float y, std::string texttotype) {
 
     // Display characters one by one
     for (char c : texttotype) {
-        glutBitmapCharacter(GLUT_BITMAP_9_BY_15, c);
+        glutBitmapCharacter(font, c);
     }
     glPopMatrix();
 }

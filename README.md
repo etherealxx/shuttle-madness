@@ -70,9 +70,11 @@ Cutted so that it ends earlier
 
 - `retro taking damage sfx.wav` by stumpbutt on [freesound.org](https://freesound.org/people/stumpbutt/sounds/629656/)
 
-- `8-bit Explosion2.aiff` by timgormly on freesound.org
-https://freesound.org/people/EVRetro/sounds/501104/
+- `8-bit Explosion2.aiff` by timgormly on [freesound.org](https://freesound.org/people/EVRetro/sounds/501104/)
 Converted to 24bit pcm wav, decreased the volume to 50%
+
+- `Game over sounds 1.wav` by afleetingspeck on [freesound.org](https://freesound.org/people/afleetingspeck/sounds/232444/)
+Cutted so that only the first part is used
 
 ## Used Libraries
 - [GLUT](https://www.opengl.org/resources/libraries/glut/glut_downloads.php)

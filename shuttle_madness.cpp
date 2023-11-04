@@ -7,7 +7,7 @@
 #include "shuttle_cocks.h"
 #include "shuttle_icon.h"
 #include "shuttle_sound.h"
-#include "shuttle_debug.h"
+// #include "shuttle_debug.h"
 #include "shuttle_image.h"
 #include "shuttle_explosion.h"
 
@@ -62,6 +62,7 @@ Sound racketHitSound("rackethit.wav", INIT_ONLY);
 Sound damagedSound("damaged.wav", INIT_ONLY);
 Sound clankSound("clank_50.wav", INIT_ONLY);
 Sound explosionSound("explosion_50.wav", INIT_ONLY);
+Sound gameOverSound("gameover.wav", INIT_ONLY);
 std::string scriptDir;
 
 std::vector<Shuttlecock> shuttlecocks;
@@ -69,6 +70,7 @@ std::vector<std::string> textLines;
 
 Image shuttleKnight("shuttle_knight.png");
 Image shuttleKnightDuck("shuttle_knight_duck.png");
+Image shuttleKnightDefeat("shuttle_knight_defeat.png");
 
 float shuttlecockSpawnTimer = 0.0f;
 float shuttlecockTimeToSpawn = 3.0f;
@@ -77,6 +79,45 @@ int secondPassed = 0;
 
 bool isKnightLoaded = shuttleKnight.isLoaded();
 int score = 0;
+bool isPlaying = true;
+bool deadTrigger = false;
+int highScore = 0;
+
+void resetValues() {
+    keyLeftPressed = false;
+    keyRightPressed = false;
+    jumpCount = 0;
+    keySPressed = false;
+    playerX = 0.0f;
+    playerY = 0.0f;
+    playerVelocityX = 0.0f;
+    playerVelocityY = 0.0f;
+    playerSizeY = 1.0f;
+    isDucking = false;
+    isGrounded = true;
+    isFastFalling = false;
+    releasedS = false;
+    extraJumpTimer = 0;
+    extraJumpHeight = 0.0f;
+    isSwingingRacket = false;
+    racketTimer = 0;
+    racketCooldownTimer = 0;
+    racketCenterX = playerX + 2.2f;
+    racketCenterY = playerY + 0.5f;
+    racketRadiusX = 0.5f;
+    racketRadiusY = 0.3f;
+    racketHitLimit = 2;
+    damageInvincibilityTimer = 0;
+    flickeringTimer = 0;
+    visibleFrameDuringFlicker = 4;
+    shuttleCockOutofBoundLimit = 15.0f;
+    shuttlecockSpawnTimer = 0.0f;
+    shuttlecockTimeToSpawn = 3.0f;
+    debugTimer = 0;
+    secondPassed = 0;
+    isKnightLoaded = shuttleKnight.isLoaded();
+    score = 0;
+}
 
 // void printAudioFilePaths() { //for testing
 //     for (Sound* sound : Sound::everySound) {
@@ -87,96 +128,131 @@ int score = 0;
 
 PlayerHitbox playerHitbox(playerX, playerY, playerSizeY, isKnightLoaded);
 
-void keyboardDown(unsigned char key, int x, int y) {
-    if (key == 'd') {
-        keyRightPressed = true;
-        // Adjust the horizontal velocity when ducking
-        playerVelocityX = isDucking ? 0.05f : 0.1f;
-    }
-    else if (key == 'a') {
-        keyLeftPressed = true;
-        // Adjust the horizontal velocity when ducking
-        playerVelocityX = isDucking ? -0.05f : -0.1f;
-    }
-    else if (key == 'w') {
-
-        racketCenterY = playerY + 0.5;
-
-        if (jumpCount < 2 && !isDucking) {
-            if (extraJumpTimer > 0) {
-                // Apply extra jump height when 'W' is pressed and 'S' was recently released.
-                extraJumpHeight = 0.05f; // Adjust the extra jump height as needed.
-                // releasedS = false; // Reset the flag.
-                extraJumpTimer = 0; // Reset the timer.
-            }
-            // Start jumping if 'W' is pressed, the jump count is less than 2,
-            // the player is grounded, and the player is not ducking
-            jumpCount++;
-            playerVelocityY = 0.2f + extraJumpHeight;
-            isGrounded = false;
-            playAudioOnClick(jumpSound);
-        }
-
-    }
-    else if (key == 's') {
-
-        racketCenterY = playerY + 0.5;
-
-        if (isGrounded) {
-            // Start ducking if 'S' is pressed, and the player is grounded
-            isDucking = true;
-            playerSizeY = 0.5f;
-            if (keyRightPressed) playerVelocityX = 0.05f;
-            if (keyLeftPressed) playerVelocityX = -0.05f;
-        }
-        else {
-            if (!isFastFalling) {
-                playerVelocityY -= 0.2f; // You can adjust this value for the desired falling speed
-                isFastFalling = true;
-            }
-
-        }
-    }
-    else if (key == ' ') { // spacebar
-        if (racketTimer == 0 && racketCooldownTimer == 0) {
-            racketTimer = 10;
-            racketCooldownTimer = 20;
-            playAudioOnClick(racketSwingSound);
-        }
+void gameOverTrigger() {
+    if (!deadTrigger) {
+        deadTrigger = true;
+        isPlaying = false;
+        stopLoop(mainThemeSound);
+        playerVelocityX = 0;
+        playerVelocityY = 0;
+        playAudioOnClick(gameOverSound);
+        highScore = score;
     }
 }
 
-void keyboardUp(unsigned char key, int x, int y) {
-    if (key == 'd') {
-        keyRightPressed = false;
-        if (!keyLeftPressed) {
-            playerVelocityX = 0.0f;
-        }
-    }
-    else if (key == 'a') {
-        keyLeftPressed = false;
-        if (!keyRightPressed) {
-            playerVelocityX = 0.0f;
-        }
-    }
-    else if (key == 's') {
-        if (isGrounded) {
-            // Stop ducking if 'S' is released, and the playenr is grounded
-            isDucking = false;
-            playerSizeY = 1.0f;
-            if (keyRightPressed) playerVelocityX = 0.1f;
-            if (keyLeftPressed) playerVelocityX = -0.1f;
-            // // Indicate that 'S' was recently released and start the timer.
-            // releasedS = true;
-            extraJumpTimer = 10; // Set the timer duration (adjust as needed).
-        }
-        else {}
+void keyboardDown(unsigned char key, int x, int y) {
+    if (isPlaying) {
 
+        if (key == 'd') {
+            keyRightPressed = true;
+            // Adjust the horizontal velocity when ducking
+            playerVelocityX = isDucking ? 0.05f : 0.1f;
+        }
+        else if (key == 'a') {
+            keyLeftPressed = true;
+            // Adjust the horizontal velocity when ducking
+            playerVelocityX = isDucking ? -0.05f : -0.1f;
+        }
+        else if (key == 'w') {
+
+            racketCenterY = playerY + 0.5;
+
+            if (jumpCount < 2 && !isDucking) {
+                if (extraJumpTimer > 0) {
+                    // Apply extra jump height when 'W' is pressed and 'S' was recently released.
+                    extraJumpHeight = 0.05f; // Adjust the extra jump height as needed.
+                    // releasedS = false; // Reset the flag.
+                    extraJumpTimer = 0; // Reset the timer.
+                }
+                // Start jumping if 'W' is pressed, the jump count is less than 2,
+                // the player is grounded, and the player is not ducking
+                jumpCount++;
+                playerVelocityY = 0.2f + extraJumpHeight;
+                isGrounded = false;
+                playAudioOnClick(jumpSound);
+            }
+
+        }
+        else if (key == 's') {
+
+            racketCenterY = playerY + 0.5;
+
+            if (isGrounded) {
+                // Start ducking if 'S' is pressed, and the player is grounded
+                isDucking = true;
+                playerSizeY = 0.5f;
+                if (keyRightPressed) playerVelocityX = 0.05f;
+                if (keyLeftPressed) playerVelocityX = -0.05f;
+            }
+            else {
+                if (!isFastFalling) {
+                    playerVelocityY -= 0.2f; // You can adjust this value for the desired falling speed
+                    isFastFalling = true;
+                }
+
+            }
+        }
+        else if (key == ' ') { // spacebar
+            if (racketTimer == 0 && racketCooldownTimer == 0) {
+                racketTimer = 10;
+                racketCooldownTimer = 20;
+                playAudioOnClick(racketSwingSound);
+            }
+        }
+
+    }
+
+    if (key == 10 or key == 13) { // enter
+        if (!isPlaying) {
+            lives = 3;
+            isPlaying = true;
+            deadTrigger = false;
+            resetValues();
+            restoreLoop(mainThemeSound);
+            for (Shuttlecock& shuttlecock : shuttlecocks) {
+                shuttlecock.toRemove = true; // Draw the shuttlecocks
+            }
+        }
+    }
+
+}
+
+void keyboardUp(unsigned char key, int x, int y) {
+    if (isPlaying) {
+        if (key == 'd') {
+            keyRightPressed = false;
+            if (!keyLeftPressed) {
+                playerVelocityX = 0.0f;
+            }
+        }
+        else if (key == 'a') {
+            keyLeftPressed = false;
+            if (!keyRightPressed) {
+                playerVelocityX = 0.0f;
+            }
+        }
+        else if (key == 's') {
+            if (isGrounded) {
+                // Stop ducking if 'S' is released, and the playenr is grounded
+                isDucking = false;
+                playerSizeY = 1.0f;
+                if (keyRightPressed) playerVelocityX = 0.1f;
+                if (keyLeftPressed) playerVelocityX = -0.1f;
+                // // Indicate that 'S' was recently released and start the timer.
+                // releasedS = true;
+                extraJumpTimer = 10; // Set the timer duration (adjust as needed).
+            }
+            else {}
+
+        }
     }
 }
 
 // Function to update the game state
 void update(int value) {
+
+    if (lives <= 0) gameOverTrigger();
+
     // Update player position based on velocity
     playerX += playerVelocityX;
     playerY += playerVelocityY;
@@ -196,83 +272,87 @@ void update(int value) {
         isFastFalling = false;
     }
 
-    // Decreasing timer
-    if (extraJumpTimer > 0) extraJumpTimer--;
-    if (racketTimer > 0) racketTimer--;
-    if (racketCooldownTimer > 0) racketCooldownTimer--;
-    if (damageInvincibilityTimer > 0) {
-        damageInvincibilityTimer--;
-        if (flickeringTimer > 0) {
-            flickeringTimer--;
+    if (isPlaying) {
+
+        // Decreasing timer
+        if (extraJumpTimer > 0) extraJumpTimer--;
+        if (racketTimer > 0) racketTimer--;
+        if (racketCooldownTimer > 0) racketCooldownTimer--;
+        if (damageInvincibilityTimer > 0) {
+            damageInvincibilityTimer--;
+            if (flickeringTimer > 0) {
+                flickeringTimer--;
+            }
+            else { flickeringTimer = 7; }
         }
-        else { flickeringTimer = 7; }
-    }
-    else { flickeringTimer = 0; }
+        else { flickeringTimer = 0; }
 
-    if (debugTimer > 0) {
-        debugTimer--;
-    }
-    else {
-        debugTimer = 60;
-        secondPassed++;
-        // writeDebugText("Second passed: " + std::to_string(secondPassed));
-        // writeDebugText("player position: " + std::to_string(playerX) + ", "
-        //     + std::to_string(playerY));
-    }
-
-    if (shuttlecockSpawnTimer > 0.0f) {
-        shuttlecockSpawnTimer -= 0.1f;
-    }
-    else {
-        shuttlecockSpawnTimer = shuttlecockTimeToSpawn * 6.0f;
-        if (shuttlecockTimeToSpawn > 1.5f) shuttlecockTimeToSpawn -= 0.04f;
-        else if (shuttlecockTimeToSpawn > 0.7f) shuttlecockTimeToSpawn -= 0.01f;
-
-        // writeDebugText("shuttlecockTimeToSpawn: " + std::to_string(shuttlecockTimeToSpawn));
-
-        // int randomBlack = rand() % 5; // blacktest (0 to 4)
-        // if (randomBlack == 0) spawnShuttlecock(SC_BLACK);
-
-        // type of shuttlecock spawned handled here
-        int randomBlack = rand() % 11; // blacktest (0 to 10)
-        if (randomBlack < 2) spawnShuttlecock(SC_YELLOW);
-        else if (randomBlack > 1 && randomBlack < 4) spawnShuttlecock(SC_BLACK);
-        else spawnShuttlecock();
-
-    }
-
-    playerHitbox.update();
-
-    for (Shuttlecock& shuttlecock : shuttlecocks) {
-        shuttlecock.update();
-
-        // Check for collision with the player's hitbox
-        if (playerHitbox.collidesWith(shuttlecock) && damageInvincibilityTimer == 0) {
-            shuttlecock.checkExplode(); // if yellow
-
-            // Destroy the shuttlecock by removing it from the vector
-            shuttlecock.toRemove = true;
-            damageInvincibilityTimer = 120;
-            lives--;
-            playAudioOnClick(damagedSound);
+        if (debugTimer > 0) {
+            debugTimer--;
+        }
+        else {
+            debugTimer = 60;
+            secondPassed++;
+            // writeDebugText("Second passed: " + std::to_string(secondPassed));
+            // writeDebugText("player position: " + std::to_string(playerX) + ", "
+            //     + std::to_string(playerY));
         }
 
-        // Check if a shuttlecock is out of bounds
-        if (shuttlecock.isOutOfBounds()) {
-            shuttlecock.toRemove = true;
+        if (shuttlecockSpawnTimer > 0.0f) {
+            shuttlecockSpawnTimer -= 0.1f;
+        }
+        else {
+            shuttlecockSpawnTimer = shuttlecockTimeToSpawn * 6.0f;
+            if (shuttlecockTimeToSpawn > 1.5f) shuttlecockTimeToSpawn -= 0.04f;
+            else if (shuttlecockTimeToSpawn > 0.7f) shuttlecockTimeToSpawn -= 0.01f;
+
+            // writeDebugText("shuttlecockTimeToSpawn: " + std::to_string(shuttlecockTimeToSpawn));
+
+            // int randomBlack = rand() % 5; // blacktest (0 to 4)
+            // if (randomBlack == 0) spawnShuttlecock(SC_BLACK);
+
+            // type of shuttlecock spawned handled here
+            int randomBlack = rand() % 11; // blacktest (0 to 10)
+            if (randomBlack < 2) spawnShuttlecock(SC_YELLOW);
+            else if (randomBlack > 1 && randomBlack < 4) spawnShuttlecock(SC_BLACK);
+            else spawnShuttlecock();
+
         }
 
-    }
+        playerHitbox.update();
 
-    shuttlecocks.erase(std::remove_if(shuttlecocks.begin(), shuttlecocks.end(), [](const Shuttlecock& s) { return s.toRemove; }), shuttlecocks.end());
+        for (Shuttlecock& shuttlecock : shuttlecocks) {
+            shuttlecock.update();
 
-    // Reset the extra jump height when the timer expires.
-    if (extraJumpTimer == 0) extraJumpHeight = 0.0f;
+            // Check for collision with the player's hitbox
+            if (playerHitbox.collidesWith(shuttlecock) && damageInvincibilityTimer == 0) {
+                shuttlecock.checkExplode(); // if yellow
 
-    // True when the timer isn't zero
-    isSwingingRacket = racketTimer > 0;
-    if (racketTimer == 0) {
-        racketHitLimit = 2;
+                // Destroy the shuttlecock by removing it from the vector
+                shuttlecock.toRemove = true;
+                damageInvincibilityTimer = 120;
+                lives--;
+                playAudioOnClick(damagedSound);
+            }
+
+            // Check if a shuttlecock is out of bounds
+            if (shuttlecock.isOutOfBounds()) {
+                shuttlecock.toRemove = true;
+            }
+
+        }
+
+        shuttlecocks.erase(std::remove_if(shuttlecocks.begin(), shuttlecocks.end(), [](const Shuttlecock& s) { return s.toRemove; }), shuttlecocks.end());
+
+        // Reset the extra jump height when the timer expires.
+        if (extraJumpTimer == 0) extraJumpHeight = 0.0f;
+
+        // True when the timer isn't zero
+        isSwingingRacket = racketTimer > 0;
+        if (racketTimer == 0) {
+            racketHitLimit = 2;
+        }
+
     }
 
     glutPostRedisplay();
@@ -287,8 +367,11 @@ void display() {
 
     if (flickeringTimer < visibleFrameDuringFlicker) {
         if (isKnightLoaded) {
-            if (!isDucking) shuttleKnight.draw(playerX, playerY);
-            else shuttleKnightDuck.draw(playerX, playerY);
+            if (lives > 0) {
+                if (!isDucking) shuttleKnight.draw(playerX, playerY);
+                else shuttleKnightDuck.draw(playerX, playerY);
+            }
+            else shuttleKnightDefeat.draw(playerX, playerY);
         }
         else { drawPlayerCharacter(playerX, playerY, playerSizeY, isDucking); } // Fallback when knight isn't loaded
         // drawPlayerCharacter(playerX, playerY, playerSizeY, isDucking); // for debugging
@@ -320,7 +403,13 @@ void display() {
     }
 
     // drawDebugText(3.0f, 5.8f);
-    drawText(0.1f, 5.3f, "Score: " + std::to_string(score));
+    if (isPlaying) drawText(0.1f, 5.3f, "Score: " + std::to_string(score));
+    if (isPlaying) drawText(0.1f, 5.1f, "Highscore: " + std::to_string(highScore));
+    if (!isPlaying) drawText(4.4f, 3.0f, "Game Over", GLUT_BITMAP_TIMES_ROMAN_24);
+    if (!isPlaying) drawText(4.4f, 2.7f, "Score: " + std::to_string(score), GLUT_BITMAP_HELVETICA_18);
+    if (!isPlaying) drawText(4.4f, 2.5f, "Highscore: " + std::to_string(highScore), GLUT_BITMAP_HELVETICA_18);
+    if (!isPlaying) drawText(4.4f, 2.3f, "You survived for " + std::to_string(secondPassed) + " seconds", GLUT_BITMAP_HELVETICA_18);
+    if (!isPlaying) drawText(4.4f, 2.1f, "Press Enter to play again", GLUT_BITMAP_HELVETICA_18);
 
     glutSwapBuffers();
 }
@@ -345,6 +434,9 @@ int main(int argc, char** argv) {
     glutKeyboardFunc(keyboardDown);
     glutKeyboardUpFunc(keyboardUp);
     // glutIdleFunc(idle);
+
+    resetValues();
+
     glutTimerFunc(0, update, 0);
 
     // Make icon for the game
@@ -367,6 +459,8 @@ int main(int argc, char** argv) {
     // printAudioFilePaths();
 
     initializeEveryAudio();
+
+    // spawnShuttlecock(0, 10.5f, 1.1f); // testing hitbox
 
     glutMainLoop();
 
