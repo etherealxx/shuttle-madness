@@ -58,7 +58,7 @@ public:
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glRasterPos2f(x, y);
             glDrawPixels(width, height, GLcolorchannel, GL_UNSIGNED_BYTE, image);
-            glEnable(GL_BLEND);
+            glDisable(GL_BLEND);
         }
     }
 

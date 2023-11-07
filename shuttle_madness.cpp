@@ -136,7 +136,7 @@ void gameOverTrigger() {
         playerVelocityX = 0;
         playerVelocityY = 0;
         playAudioOnClick(gameOverSound);
-        highScore = score;
+        if (score > highScore) highScore = score;
     }
 }
 
