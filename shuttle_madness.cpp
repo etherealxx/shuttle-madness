@@ -403,16 +403,21 @@ void display() {
         }
     }
 
+    glBegin(GL_LINES); // debug middle line
+    glVertex2f(5.0, 0.0);
+    glVertex2f(5.0, 6.0);
+    glEnd();
+
     // drawDebugText(3.0f, 5.8f);
     if (isPlaying) drawText(0.1f, 5.3f, "Score: " + std::to_string(score));
     if (isPlaying) drawText(0.1f, 5.1f, "Highscore: " + std::to_string(highScore));
-    if (!isPlaying) drawText(4.4f, 3.0f, "Game Over", GLUT_BITMAP_TIMES_ROMAN_24);
-    if (!isPlaying) drawText(4.4f, 2.7f, "Score: " + std::to_string(score), GLUT_BITMAP_HELVETICA_18);
-    if (!isPlaying) drawText(4.4f, 2.5f, "Highscore: " + std::to_string(highScore), GLUT_BITMAP_HELVETICA_18);
-    if (!isPlaying) drawText(4.4f, 2.3f, "You survived for " + std::to_string(secondPassed) + " seconds", GLUT_BITMAP_HELVETICA_18);
-    if (!isPlaying) drawText(4.4f, 2.1f, "Press Enter to play again", GLUT_BITMAP_HELVETICA_18);
-    if (isPaused) drawText(6.5f, 5.6f, "Game Paused", GLUT_BITMAP_TIMES_ROMAN_24);
-    if (isPaused) drawText(6.5f, 5.3f, "Press Esc to continue playing", GLUT_BITMAP_HELVETICA_18);
+    if (!isPlaying) drawTextCenter(5.0f, 3.2f, "Game Over", GLUT_BITMAP_TIMES_ROMAN_24);
+    if (!isPlaying) drawTextCenter(5.0f, 2.9f, "Score: " + std::to_string(score), GLUT_BITMAP_HELVETICA_18);
+    if (!isPlaying) drawTextCenter(5.0f, 2.7f, "Highscore: " + std::to_string(highScore), GLUT_BITMAP_HELVETICA_18);
+    if (!isPlaying) drawTextCenter(5.0f, 2.5f, "You survived for " + std::to_string(secondPassed) + " seconds", GLUT_BITMAP_HELVETICA_18);
+    if (!isPlaying) drawTextCenter(5.0f, 2.3f, "Press Enter to play again", GLUT_BITMAP_HELVETICA_18);
+    if (isPaused) drawTextCenter(5.0f, 3.0f, "Game Paused", GLUT_BITMAP_TIMES_ROMAN_24);
+    if (isPaused) drawTextCenter(5.0f, 2.7f, "Press Esc to continue playing", GLUT_BITMAP_HELVETICA_18);
     glutSwapBuffers();
 }
 

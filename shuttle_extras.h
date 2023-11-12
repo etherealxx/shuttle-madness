@@ -286,6 +286,28 @@ void drawText(float x, float y, std::string texttotype, void* font = GLUT_BITMAP
     glPopMatrix();
 }
 
+float calculateTextX_Center(float x, const std::string& text, void* font = GLUT_BITMAP_9_BY_15) {
+    int count = text.size();
+    float alignmentFactor;
+
+    if (font == GLUT_BITMAP_9_BY_15) alignmentFactor = 0.05f;
+    else if (font == GLUT_BITMAP_TIMES_ROMAN_24) alignmentFactor = 0.085f;
+    else if (font == GLUT_BITMAP_HELVETICA_18) alignmentFactor = 0.058f;
+    else {
+        alignmentFactor = 0.05f;
+    }
+
+    float xPos = x - (count * alignmentFactor);
+    return xPos;
+}
+
+void drawTextCenter(float x, float y, const std::string& text, void* font = GLUT_BITMAP_9_BY_15) {
+    float adjusted_xpos = calculateTextX_Center(x, text, font);
+    // drawText(x, y, to_string(adjusted_xpos));
+    // drawText(x, y, text);
+    drawText(adjusted_xpos, y, text, font);
+}
+
 // class PlayerHitbox {}
 
 #endif
