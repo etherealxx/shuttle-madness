@@ -3,3 +3,4 @@
 mingw32/
 build/
 shuttle_build.evb
+menutest.cpp

@@ -422,7 +422,7 @@ void display() {
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
-    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+    glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGBA);
     glutInitWindowSize(800, 600);
     glutCreateWindow("Shuttle Madness");
 
@@ -466,7 +466,8 @@ int main(int argc, char** argv) {
 
     glutMainLoop();
 
-    uninitEveryAudio();
+    uninitEveryAudio(); // can this be reached? idk
+    // consider freeglut with glLeaveMainLoop()
 
     return 0;
 }

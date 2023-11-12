@@ -34,6 +34,11 @@ public:
         everySound.push_back(this);
     }
 
+    ~Sound() {
+        ma_device_uninit(&device);
+        ma_decoder_uninit(&decoder);
+    }
+
     // void stopLoop() { // moved down for consistency
     //     forceStop = true;
     // }
