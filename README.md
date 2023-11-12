@@ -82,11 +82,13 @@ Converted to 24bit pcm wav, decreased the volume to 50%
 - `Game over sounds 1.wav` by afleetingspeck on [freesound.org](https://freesound.org/people/afleetingspeck/sounds/232444/)
 Cutted so that only the first part is used
 
+- `pause.mp3`` by crisstanza on [freesound.org](https://freesound.org/people/crisstanza/sounds/167127/)
+Converted to 24bit pcm wav, decreased the volume to 60%
+
 ## Used Libraries
-- [GLUT](https://www.opengl.org/resources/libraries/glut/glut_downloads.php)
+- [GLUT](https://www.opengl.org/resources/libraries/glut/glut_downloads.php)/[FreeGLUT](https://github.com/FreeGLUTProject/freeglut)
 - [stb_image](https://github.com/nothings/stb)
 - [miniaudio](https://github.com/mackron/miniaudio)
-- [FreeGLUT](https://github.com/FreeGLUTProject/freeglut)
 
 ## Special Thanks
 - Ikhsan Ridwan who made the `shuttle_knight.png` sprite

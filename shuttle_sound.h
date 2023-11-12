@@ -180,10 +180,19 @@ void stopLoop(Sound& sound) {
     sound.forceStop = true;
 }
 
-void restoreLoop(Sound& sound) {
+void restoreLoop(Sound& sound, string resuming = "") {
     sound.forceStop = false;
-    sound.totalFramesPlayed = 0;
-    ma_decoder_seek_to_pcm_frame(&sound.decoder, 0);
+    if (resuming == "resume") {
+        ma_decoder_seek_to_pcm_frame(&sound.decoder, sound.totalFramesPlayed);
+    }
+    else { // start over
+        sound.totalFramesPlayed = 0;
+        ma_decoder_seek_to_pcm_frame(&sound.decoder, 0);
+    }
+}
+
+void pauseLoop(Sound& sound) {
+    sound.forceStop = true;
 }
 
 #endif
