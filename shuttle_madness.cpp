@@ -9,7 +9,10 @@
 #include "shuttle_sound.h"
 #include "shuttle_image.h"
 #include "shuttle_explosion.h"
+#include "shuttle_menu.h"
 // #include "shuttle_debug.h"
+
+State gameState = Menu;
 
 // Game variables, sorted by the moment it was being added
 // Except images and sounds as they're grouped together
@@ -77,6 +80,14 @@ int highScore = 0;
 
 bool isPaused = false;
 
+Title menuItem({ "Play","How to Play","Options","Credit", "Quit" });
+Title optionsItem({ "[v] Music", "[v] Sound Effects" }, 0,
+    { "[  ] Music", "[  ] Sound Effects" });
+
+std::vector<std::string> creditbefore = { "Game made by etherealxx","With occasional help from ChatGPT","" };
+std::vector<std::string> creditafter = { "","shuttle_knight.png by Ikhsan Ridwan","",
+"Additional credits and information can be read at https://github.com/etherealxx/shuttle-madness" };
+
 void resetValues() {
     keyLeftPressed = false;
     keyRightPressed = false;
@@ -133,7 +144,18 @@ void gameOverTrigger() {
     }
 }
 
-void keyboardDown(unsigned char key, int x, int y) {
+void resetGame() {
+    lives = 3;
+    isPlaying = true;
+    deadTrigger = false;
+    resetValues();
+    restoreLoop(mainThemeSound);
+    for (Shuttlecock& shuttlecock : shuttlecocks) {
+        shuttlecock.toRemove = true; // Draw the shuttlecocks
+    }
+}
+
+void playingKeyboardDown(unsigned char& key) {
     if (isPlaying) {
         if (!isPaused) {
             if (key == 'd') {
@@ -192,6 +214,10 @@ void keyboardDown(unsigned char key, int x, int y) {
                 }
             }
         }
+        else { // game paused
+            if (key == 8) gameState = Menu; // backspace
+            if (key == 127) resetGame(); // Delete button
+        }
 
         if (key == 27) { // esc
             isPaused = !isPaused; // toggle/trigger pausing
@@ -200,48 +226,88 @@ void keyboardDown(unsigned char key, int x, int y) {
         }
     }
     else {
-        if (key == 10 or key == 13) { // enter
-            lives = 3;
-            isPlaying = true;
-            deadTrigger = false;
-            resetValues();
-            restoreLoop(mainThemeSound);
-            for (Shuttlecock& shuttlecock : shuttlecocks) {
-                shuttlecock.toRemove = true; // Draw the shuttlecocks
+        if (key == 8) gameState = Menu; // backspace
+        if (key == 10 or key == 13) resetGame(); // enter
+    }
+}
+
+void keyup_or_w_pressed() {
+    if (gameState == Menu) {
+        menuItem.selectUpward();
+    }
+    else if (gameState == Options) {
+        optionsItem.selectUpward();
+    }
+    // towrite = "menu item: " + to_string(menuItem.getSelected()); // debug
+}
+
+void keydown_or_s_pressed() {
+    if (gameState == Menu) {
+        menuItem.selectDownward();
+    }
+    else if (gameState == Options) {
+        optionsItem.selectDownward();
+    }
+    // towrite = "menu item: " + to_string(menuItem.getSelected()); // debug
+}
+
+void keyboardDown(unsigned char key, int x, int y) {
+    if (gameState == Play) playingKeyboardDown(key);
+    else {
+        if (key == 'w') keyup_or_w_pressed();
+        else if (key == 's') keydown_or_s_pressed();
+        else if (key == 10 or key == 13) { // enter key
+            if (gameState == Menu) {
+                gameState = static_cast<State>(menuItem.getSelected() + 1);
             }
+            else if (gameState == Options) {
+                optionsItem.switchItemState();
+            }
+        }
+        if (gameState != Menu) { // not in the menu
+            if (key == 8) gameState = Menu; // backspace
         }
     }
 }
 
 void keyboardUp(unsigned char key, int x, int y) {
-    if (isPlaying) {
-        if (key == 'd') {
-            keyRightPressed = false;
-            if (!keyLeftPressed) {
-                playerVelocityX = 0.0f;
+    if (gameState == Play) {
+        if (isPlaying) {
+            if (key == 'd') {
+                keyRightPressed = false;
+                if (!keyLeftPressed) {
+                    playerVelocityX = 0.0f;
+                }
             }
-        }
-        else if (key == 'a') {
-            keyLeftPressed = false;
-            if (!keyRightPressed) {
-                playerVelocityX = 0.0f;
+            else if (key == 'a') {
+                keyLeftPressed = false;
+                if (!keyRightPressed) {
+                    playerVelocityX = 0.0f;
+                }
             }
-        }
-        else if (key == 's') {
-            if (isGrounded) {
-                // Stop ducking if 'S' is released, and the playenr is grounded
-                isDucking = false;
-                playerSizeY = 1.0f;
-                if (keyRightPressed) playerVelocityX = 0.1f;
-                if (keyLeftPressed) playerVelocityX = -0.1f;
-                // // Indicate that 'S' was recently released and start the timer.
-                // releasedS = true;
-                extraJumpTimer = 10; // Set the timer duration (adjust as needed).
-            }
-            else {}
+            else if (key == 's') {
+                if (isGrounded) {
+                    // Stop ducking if 'S' is released, and the playenr is grounded
+                    isDucking = false;
+                    playerSizeY = 1.0f;
+                    if (keyRightPressed) playerVelocityX = 0.1f;
+                    if (keyLeftPressed) playerVelocityX = -0.1f;
+                    // // Indicate that 'S' was recently released and start the timer.
+                    // releasedS = true;
+                    extraJumpTimer = 10; // Set the timer duration (adjust as needed).
+                }
+                else {}
 
+            }
         }
     }
+}
+
+void specialKeys(int key, int x, int y) {
+    if (key == GLUT_KEY_UP) keyup_or_w_pressed();
+    else if (key == GLUT_KEY_DOWN) keydown_or_s_pressed();
+
+    glutPostRedisplay();
 }
 
 void playingupdate() { // splitted from void update(), this is everything inside if (isPlaying)
@@ -328,42 +394,45 @@ void playingupdate() { // splitted from void update(), this is everything inside
 // Function to update the game state
 void update(int value) {
 
-    if (lives <= 0) gameOverTrigger();
+    switch (gameState) {
+    case Play:
+        if (lives <= 0) gameOverTrigger();
 
-    if (!isPaused) {
-        // Update player position based on velocity
-        playerX += playerVelocityX;
-        playerY += playerVelocityY;
+        if (!isPaused) {
+            // Update player position based on velocity
+            playerX += playerVelocityX;
+            playerY += playerVelocityY;
 
-        // Apply gravity to the player (simulate falling)
-        playerVelocityY -= 0.01f;
+            // Apply gravity to the player (simulate falling)
+            playerVelocityY -= 0.01f;
 
-        // Keep the player within the screen bounds
-        if (playerX < -0.0f) playerX = -0.0f;
-        if (playerX > 9.0f) playerX = 9.0f;
+            // Keep the player within the screen bounds
+            if (playerX < -0.0f) playerX = -0.0f;
+            if (playerX > 9.0f) playerX = 9.0f;
 
-        if (playerY < 0.0f) {
-            playerY = 0.0f;
-            playerVelocityY = 0.0f; // Stop falling
-            jumpCount = 0;
-            isGrounded = true;
-            isFastFalling = false;
+            if (playerY < 0.0f) {
+                playerY = 0.0f;
+                playerVelocityY = 0.0f; // Stop falling
+                jumpCount = 0;
+                isGrounded = true;
+                isFastFalling = false;
+            }
+
+            if (isPlaying) playingupdate();
         }
-
-        if (isPlaying) playingupdate();
-    }
-    else {
-        stopLoop(mainThemeSound);
-    }
+        else stopLoop(mainThemeSound);
+        break;
+    case Quit:
+        glutDestroyWindow(glutGetWindow());
+        exit(0); // just in case
+        break;
+    };
 
     glutPostRedisplay();
     glutTimerFunc(16, update, 0); // 60 FPS
 }
 
-// Function to draw the game scene
-void display() {
-
-    glClear(GL_COLOR_BUFFER_BIT);
+void gameDisplay() { // splitted from void display(), everything inside it before the menu
     // drawPlayerSquare(playerX, playerY, playerSizeY); // Draw the player character
 
     if (flickeringTimer < visibleFrameDuringFlicker) {
@@ -402,22 +471,63 @@ void display() {
             drawHeart(i * 0.7f + 0.1f, 5.5f, 0.6f);
         }
     }
-
-    glBegin(GL_LINES); // debug middle line
-    glVertex2f(5.0, 0.0);
-    glVertex2f(5.0, 6.0);
-    glEnd();
-
     // drawDebugText(3.0f, 5.8f);
-    if (isPlaying) drawText(0.1f, 5.3f, "Score: " + std::to_string(score));
-    if (isPlaying) drawText(0.1f, 5.1f, "Highscore: " + std::to_string(highScore));
-    if (!isPlaying) drawTextCenter(5.0f, 3.2f, "Game Over", GLUT_BITMAP_TIMES_ROMAN_24);
-    if (!isPlaying) drawTextCenter(5.0f, 2.9f, "Score: " + std::to_string(score), GLUT_BITMAP_HELVETICA_18);
-    if (!isPlaying) drawTextCenter(5.0f, 2.7f, "Highscore: " + std::to_string(highScore), GLUT_BITMAP_HELVETICA_18);
-    if (!isPlaying) drawTextCenter(5.0f, 2.5f, "You survived for " + std::to_string(secondPassed) + " seconds", GLUT_BITMAP_HELVETICA_18);
-    if (!isPlaying) drawTextCenter(5.0f, 2.3f, "Press Enter to play again", GLUT_BITMAP_HELVETICA_18);
-    if (isPaused) drawTextCenter(5.0f, 3.0f, "Game Paused", GLUT_BITMAP_TIMES_ROMAN_24);
-    if (isPaused) drawTextCenter(5.0f, 2.7f, "Press Esc to continue playing", GLUT_BITMAP_HELVETICA_18);
+    if (isPlaying) {
+        drawText(0.1f, 5.3f, "Score: " + std::to_string(score));
+        drawText(0.1f, 5.1f, "Highscore: " + std::to_string(highScore));
+    }
+    else {
+        drawTextCenter(5.0f, 3.2f, "Game Over", GLUT_BITMAP_TIMES_ROMAN_24);
+        drawTextCenter(5.0f, 2.9f, "Score: " + std::to_string(score), GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.7f, "Highscore: " + std::to_string(highScore), GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.5f, "You survived for " + std::to_string(secondPassed) + " seconds", GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.3f, "Press Enter to play again", GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.1f, "Press Backspace to go to menu", GLUT_BITMAP_HELVETICA_18);
+    }
+
+    if (isPaused) {
+        drawTextCenter(5.0f, 3.0f, "Game Paused", GLUT_BITMAP_TIMES_ROMAN_24);
+        drawTextCenter(5.0f, 2.7f, "Press Esc to continue playing", GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.5f, "Press Backspace to go to menu", GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.3f, "Press Delete key to restart game", GLUT_BITMAP_HELVETICA_18);
+    }
+
+}
+
+// Function to draw the game scene
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    switch (gameState) {
+    case Play:
+        gameDisplay();
+        break;
+    case Menu:
+        // drawDebugLine();
+        drawTextCenter_menu(5.0f, 5.0f, "Shuttle Madness", GLUT_BITMAP_TIMES_ROMAN_24);
+        menuItem.draw();
+        drawTextCenter_menu(5.0f, 0.4f, "Press Enter to select", GLUT_BITMAP_9_BY_15);
+        break;
+    case How_to_Play:
+        drawFromTxt(0.3f, 4.0f, 0.15f, "shuttle_howtoplay.txt",
+            std::vector<std::string>(), std::vector<std::string>(), GLUT_BITMAP_9_BY_15);
+
+        drawTextCenter_menu(5.0f, 0.2f, "Press Backspace to go back", GLUT_BITMAP_9_BY_15);
+        break;
+    case Options:
+        optionsItem.draw();
+        drawTextCenter_menu(5.0f, 0.4f, "Press Enter to toggle", GLUT_BITMAP_9_BY_15);
+        drawTextCenter_menu(5.0f, 0.2f, "Press Backspace to go back", GLUT_BITMAP_9_BY_15);
+        break;
+    case Credit:
+        drawFromTxt(0.3f, 5.5f, 0.12f, "shuttle_audio_credit.txt", creditbefore, creditafter);
+        drawTextCenter_menu(5.0f, 0.2f, "Press Backspace to go back", GLUT_BITMAP_9_BY_15);
+        break;
+    case Quit:
+        drawTextCenter_menu(5.0f, 3.0f, "Quitting...");
+        break;
+    };
+
     glutSwapBuffers();
 }
 
@@ -434,12 +544,15 @@ int main(int argc, char** argv) {
     // Seed the random number generator with the current time
     srand(static_cast<unsigned>(time(nullptr)));
 
-    glOrtho(0.0, 10.0, 0.0, 6.0, -1.0, 1.0);
+    GLdouble rightOrtho = 10.0;
+    GLdouble topOrtho = 6.0;
+    glOrtho(0.0, rightOrtho, 0.0, topOrtho, -1.0, 1.0);
 
     glutDisplayFunc(display);
     // glutKeyboardFunc(keyboard);
     glutKeyboardFunc(keyboardDown);
     glutKeyboardUpFunc(keyboardUp);
+    glutSpecialFunc(specialKeys);
     // glutIdleFunc(idle);
 
     resetValues();
@@ -466,6 +579,9 @@ int main(int argc, char** argv) {
     // printAudioFilePaths();
 
     initializeEveryAudio();
+
+    menuItem.calculateTextsCoordinate(rightOrtho / 2, topOrtho / 2, menuSpacing);
+    optionsItem.calculateTextsCoordinate(rightOrtho / 2, topOrtho / 2, menuSpacing);
 
     // spawnShuttlecock(0, 10.5f, 1.1f); // testing hitbox
 

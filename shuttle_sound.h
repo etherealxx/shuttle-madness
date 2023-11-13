@@ -1,3 +1,7 @@
+// 2023 Jibril Wathon
+// github.com/etherealxx
+// Public Domain
+
 #ifndef SHUTTLE_SOUND_H
 #define SHUTTLE_SOUND_H
 

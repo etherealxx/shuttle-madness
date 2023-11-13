@@ -308,6 +308,20 @@ void drawTextCenter(float x, float y, const std::string& text, void* font = GLUT
     drawText(adjusted_xpos, y, text, font);
 }
 
+void drawDebugLine() { // Draw two vertical lines in the middle of the screen
+    glColor3f(1.0, 1.0, 1.0);
+
+    glBegin(GL_LINES);
+    glVertex2f(5.0, 0.0);
+    glVertex2f(5.0, 6.0);
+    glEnd();
+
+    glBegin(GL_LINES);
+    glVertex2f(0.0, 3.0);
+    glVertex2f(10.0, 3.0);
+    glEnd();
+}
+
 // class PlayerHitbox {}
 
 #endif
