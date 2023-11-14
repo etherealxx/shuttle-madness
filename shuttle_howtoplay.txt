@@ -10,3 +10,4 @@ Tips:
 - Hit the pink shuttlecock to score point
 - Dodge the gray shuttlecock as it can't be reflected
 - Don't hit the yellow shuttlecock with the racket, it can damage you
+- In the menu, you can use either up/down arrow or W and S key to navigate 

@@ -21,6 +21,7 @@ extern Sound explosionSound;
 extern int lives;
 extern int damageInvincibilityTimer;
 extern int score;
+extern bool checkmutedsfx;
 
 // shuttlecock variant
 const int SC_BLACK = 0x01;  // 00000001
@@ -60,9 +61,14 @@ void drawFeather(float x, float y, float angle) {
     glPopMatrix();
 }
 
-void drawShuttlecock(float noseposX, float noseposY, float shuttlecockAngle, float scaleFactor, float color[3]) {
+void drawShuttlecock(float noseposX, float noseposY, float shuttlecockAngle, float scaleFactor, float color[3], float transparency = 1.0f) {
     glPushMatrix();
-    glColor3fv(color); // Set the color
+    if (transparency != 1.0f) {
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+    glColor4f(color[0], color[1], color[2], transparency);
+    // glColor3fv(color); // Set the color
     glTranslatef(noseposX, noseposY, 0.0f);
     glRotatef(shuttlecockAngle, 0.0f, 0.0f, 1.0f); // Apply rotation to the entire shuttlecock
     glScalef(scaleFactor * 3 / 4, scaleFactor, 1.0f); // Apply scaling to the entire shuttlecock
@@ -78,7 +84,7 @@ void drawShuttlecock(float noseposX, float noseposY, float shuttlecockAngle, flo
         float angle = (i - 1) * 10.0f + 70.0f;
         drawFeather(i * 0.31f - 1.05f, -1.0f, angle);
     }
-
+    if (transparency != 1.0f)glDisable(GL_BLEND);
     glPopMatrix();
 }
 
@@ -119,7 +125,7 @@ public:
                 if (isSwingingRacket && !gotHit) {
                     if (flags & SC_BLACK) {
                         gotHit = true;
-                        playAudioOnClick(clankSound);
+                        playAudioOnClick(clankSound, checkmutedsfx);
                     }
                     else {
                         if (racketHitLimit > 0) {
@@ -138,7 +144,7 @@ public:
                                 // Collision detected, reverse the speed and rotate by 180 degrees
                                 speed = -speed;
                                 angle += 180.0f; // Rotate the shuttlecock by 180 degrees
-                                playAudioOnClick(racketHitSound);
+                                playAudioOnClick(racketHitSound, checkmutedsfx);
                                 if (lives > 0) score++;
                             }
                         }
@@ -189,7 +195,7 @@ public:
 
     void explode() {
         createExplosionInstance(x, y);
-        playAudioOnClick(explosionSound);
+        playAudioOnClick(explosionSound, checkmutedsfx);
     }
 
     int getFlags() { return flags; }

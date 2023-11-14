@@ -47,6 +47,9 @@ public:
     //     forceStop = true;
     // }
 
+    bool isStopped() { return forceStop; }
+    bool isInitOnly() { return initOnly; }
+
     static vector<Sound*> everySound;
 };
 
@@ -174,14 +177,16 @@ void uninitEveryAudio() {
     }
 }
 
-void playAudioOnClick(Sound& sound) {
-    if (sound.initOnly == true) {
-        sound.initOnly = false;
-        initConfigMiniAudio(sound.audioFilename, sound, true);
-    }
-    else {
-        sound.totalFramesPlayed = 0;
-        ma_decoder_seek_to_pcm_frame(&sound.decoder, 0);
+void playAudioOnClick(Sound& sound, bool isMuted = false) {
+    if (!isMuted) {
+        if (sound.initOnly == true) {
+            sound.initOnly = false;
+            initConfigMiniAudio(sound.audioFilename, sound, true);
+        }
+        else {
+            sound.totalFramesPlayed = 0;
+            ma_decoder_seek_to_pcm_frame(&sound.decoder, 0);
+        }
     }
 }
 

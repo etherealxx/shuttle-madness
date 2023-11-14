@@ -61,7 +61,8 @@ void drawTextCenter_menu(float x, float y, const string& text, void* font = GLUT
 }
 
 void drawFromTxt(float x, float starty, float spacing, string txtFile, const vector<string>& writeBefore = vector<string>(),
-    const vector<string>& writeAfter = vector<string>(), void* font = GLUT_BITMAP_8_BY_13) {
+    const vector<string>& writeAfter = vector<string>(), void* font = GLUT_BITMAP_8_BY_13,
+    const vector<int>& startstoprange = vector<int>(2, -1)) {
     string filePath = scriptDir + "/" + txtFile;
 
     // Open the file
@@ -84,10 +85,22 @@ void drawFromTxt(float x, float starty, float spacing, string txtFile, const vec
 
         float texty = starty;
         // Output each line from the vector
-        for (const auto& line : lines) {
+        int startline;
+        if (startstoprange[0] == -1) startline = 0;
+        else startline = startstoprange[0];
+        // if (startstoprange[0] == -1) startline = 0 + writeBefore.size();
+        // else startline = startstoprange[0] + writeBefore.size();
+
+        // for (const auto& line : lines) {
+        for (size_t i = 0; i < lines.size(); ++i) {
             // std::cout << line << std::endl;
-            drawText_menu(x, texty, line, font);
-            texty -= spacing;
+            if (i >= startline) {
+                drawText_menu(x, texty, lines[i], font);
+                texty -= spacing;
+            }
+            if (startstoprange[1] != -1 && startstoprange[1] == i - writeBefore.size()) {
+                break;
+            }
         }
     }
     else {
@@ -188,6 +201,10 @@ public:
             itemSecondStateSwitch[index] = 0;
         }
 
+    }
+
+    int getStateFromIndex(int index) {
+        return itemSecondStateSwitch[index];
     }
 
 private:

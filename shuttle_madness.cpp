@@ -50,7 +50,7 @@ int visibleFrameDuringFlicker = 4;
 float shuttleCockOutofBoundLimit = 15.0f;
 
 std::string scriptDir;
-Sound mainThemeSound("maintheme_20.wav", IS_LOOPING);
+Sound mainThemeSound("maintheme_20.wav", INIT_ONLY | IS_LOOPING);
 Sound jumpSound("jump.wav", INIT_ONLY);
 Sound racketSwingSound("racketswing.wav", INIT_ONLY);
 Sound racketHitSound("rackethit.wav", INIT_ONLY);
@@ -59,6 +59,9 @@ Sound clankSound("clank_50.wav", INIT_ONLY);
 Sound explosionSound("explosion_50.wav", INIT_ONLY);
 Sound gameOverSound("gameover.wav", INIT_ONLY);
 Sound pauseSound("pause_60.wav", INIT_ONLY);
+Sound menuThemeSound("menutheme_70.wav", IS_LOOPING);
+Sound menuHoverSound("menuhover_amp.wav", INIT_ONLY);
+Sound menuClickSound("menuclick_amp.wav", INIT_ONLY);
 
 std::vector<Shuttlecock> shuttlecocks;
 std::vector<std::string> textLines;
@@ -66,6 +69,7 @@ std::vector<std::string> textLines;
 Image shuttleKnight("shuttle_knight.png");
 Image shuttleKnightDuck("shuttle_knight_duck.png");
 Image shuttleKnightDefeat("shuttle_knight_defeat.png");
+Image shuttleMenuBackground("shuttle_menu_background_2.png");
 
 float shuttlecockSpawnTimer = 0.0f;
 float shuttlecockTimeToSpawn = 3.0f;
@@ -84,9 +88,16 @@ Title menuItem({ "Play","How to Play","Options","Credit", "Quit" });
 Title optionsItem({ "[v] Music", "[v] Sound Effects" }, 0,
     { "[  ] Music", "[  ] Sound Effects" });
 
+bool checkmutedsfx = false;
+bool checkmutedmusic = false;
+
 std::vector<std::string> creditbefore = { "Game made by etherealxx","With occasional help from ChatGPT","" };
 std::vector<std::string> creditafter = { "","shuttle_knight.png by Ikhsan Ridwan","",
 "Additional credits and information can be read at https://github.com/etherealxx/shuttle-madness" };
+int creditpage = 1;
+
+float pinkColor[3] = { 1.0f, 0.0f, 0.5f };
+PlayerHitbox playerHitbox(playerX, playerY, playerSizeY, isKnightLoaded);
 
 void resetValues() {
     keyLeftPressed = false;
@@ -130,8 +141,6 @@ void resetValues() {
 //     }
 // }
 
-PlayerHitbox playerHitbox(playerX, playerY, playerSizeY, isKnightLoaded);
-
 void gameOverTrigger() {
     if (!deadTrigger) {
         deadTrigger = true;
@@ -139,7 +148,7 @@ void gameOverTrigger() {
         stopLoop(mainThemeSound);
         playerVelocityX = 0;
         playerVelocityY = 0;
-        playAudioOnClick(gameOverSound);
+        playAudioOnClick(gameOverSound, checkmutedsfx);
         if (score > highScore) highScore = score;
     }
 }
@@ -183,7 +192,7 @@ void playingKeyboardDown(unsigned char& key) {
                     jumpCount++;
                     playerVelocityY = 0.2f + extraJumpHeight;
                     isGrounded = false;
-                    playAudioOnClick(jumpSound);
+                    playAudioOnClick(jumpSound, checkmutedsfx);
                 }
 
             }
@@ -210,23 +219,31 @@ void playingKeyboardDown(unsigned char& key) {
                 if (racketTimer == 0 && racketCooldownTimer == 0) {
                     racketTimer = 10;
                     racketCooldownTimer = 20;
-                    playAudioOnClick(racketSwingSound);
+                    playAudioOnClick(racketSwingSound, checkmutedsfx);
                 }
             }
         }
         else { // game paused
-            if (key == 8) gameState = Menu; // backspace
+            if (key == 8) { // backspace
+                playAudioOnClick(menuClickSound, checkmutedsfx);
+                gameState = Menu;
+                if (menuThemeSound.isStopped()) restoreLoop(menuThemeSound);
+            }
             if (key == 127) resetGame(); // Delete button
         }
 
         if (key == 27) { // esc
             isPaused = !isPaused; // toggle/trigger pausing
-            if (isPaused) playAudioOnClick(pauseSound);
+            if (isPaused) playAudioOnClick(pauseSound, checkmutedsfx);
             else restoreLoop(mainThemeSound, "resume");
         }
     }
     else {
-        if (key == 8) gameState = Menu; // backspace
+        if (key == 8) { // backspace
+            playAudioOnClick(menuClickSound, checkmutedsfx);
+            gameState = Menu;
+            if (menuThemeSound.isStopped()) restoreLoop(menuThemeSound);
+        }
         if (key == 10 or key == 13) resetGame(); // enter
     }
 }
@@ -234,9 +251,15 @@ void playingKeyboardDown(unsigned char& key) {
 void keyup_or_w_pressed() {
     if (gameState == Menu) {
         menuItem.selectUpward();
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
     }
     else if (gameState == Options) {
         optionsItem.selectUpward();
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
+    }
+    else if (gameState == Credit) {
+        creditpage = (creditpage == 1) ? 2 : 1; // toggle between 1 or 2
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
     }
     // towrite = "menu item: " + to_string(menuItem.getSelected()); // debug
 }
@@ -244,9 +267,15 @@ void keyup_or_w_pressed() {
 void keydown_or_s_pressed() {
     if (gameState == Menu) {
         menuItem.selectDownward();
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
     }
     else if (gameState == Options) {
         optionsItem.selectDownward();
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
+    }
+    else if (gameState == Credit) {
+        creditpage = (creditpage == 1) ? 2 : 1; // toggle between 1 or 2
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
     }
     // towrite = "menu item: " + to_string(menuItem.getSelected()); // debug
 }
@@ -258,14 +287,32 @@ void keyboardDown(unsigned char key, int x, int y) {
         else if (key == 's') keydown_or_s_pressed();
         else if (key == 10 or key == 13) { // enter key
             if (gameState == Menu) {
+                playAudioOnClick(menuClickSound, checkmutedsfx);
                 gameState = static_cast<State>(menuItem.getSelected() + 1);
+                if (gameState == Play) {
+                    stopLoop(menuThemeSound);
+                    if (mainThemeSound.isInitOnly()) {
+                        playAudioOnClick(mainThemeSound, checkmutedmusic);
+                    }
+                }
             }
             else if (gameState == Options) {
+                playAudioOnClick(menuClickSound, checkmutedsfx);
                 optionsItem.switchItemState();
+                checkmutedmusic = (optionsItem.getStateFromIndex(0) == 1);
+                checkmutedsfx = (optionsItem.getStateFromIndex(1) == 1);
+                if (checkmutedmusic) stopLoop(menuThemeSound);
+                else {
+                    if (menuThemeSound.isStopped()) restoreLoop(menuThemeSound);
+                }
+
             }
         }
         if (gameState != Menu) { // not in the menu
-            if (key == 8) gameState = Menu; // backspace
+            if (key == 8) { // backspace
+                playAudioOnClick(menuClickSound, checkmutedsfx);
+                gameState = Menu;
+            }
         }
     }
 }
@@ -369,7 +416,7 @@ void playingupdate() { // splitted from void update(), this is everything inside
             shuttlecock.toRemove = true;
             damageInvincibilityTimer = 120;
             lives--;
-            playAudioOnClick(damagedSound);
+            playAudioOnClick(damagedSound, checkmutedsfx);
         }
 
         // Check if a shuttlecock is out of bounds
@@ -503,14 +550,17 @@ void display() {
         gameDisplay();
         break;
     case Menu:
+        shuttleMenuBackground.draw(0.1f, 0.1f);
         // drawDebugLine();
         drawTextCenter_menu(5.0f, 5.0f, "Shuttle Madness", GLUT_BITMAP_TIMES_ROMAN_24);
         menuItem.draw();
         drawTextCenter_menu(5.0f, 0.4f, "Press Enter to select", GLUT_BITMAP_9_BY_15);
+        // drawShuttlecock(5.0f, 3.0f, 90, 1.0f, pinkColor);
         break;
     case How_to_Play:
         drawFromTxt(0.3f, 4.0f, 0.15f, "shuttle_howtoplay.txt",
-            std::vector<std::string>(), std::vector<std::string>(), GLUT_BITMAP_9_BY_15);
+            std::vector<std::string>(), std::vector<std::string>(), GLUT_BITMAP_9_BY_15,
+            { 0, 35 });
 
         drawTextCenter_menu(5.0f, 0.2f, "Press Backspace to go back", GLUT_BITMAP_9_BY_15);
         break;
@@ -520,7 +570,15 @@ void display() {
         drawTextCenter_menu(5.0f, 0.2f, "Press Backspace to go back", GLUT_BITMAP_9_BY_15);
         break;
     case Credit:
-        drawFromTxt(0.3f, 5.5f, 0.12f, "shuttle_audio_credit.txt", creditbefore, creditafter);
+        if (creditpage == 1) {
+            drawFromTxt(0.3f, 5.5f, 0.12f, "shuttle_audio_credit.txt", creditbefore,
+                std::vector<std::string>(), GLUT_BITMAP_8_BY_13, { 0, 37 });
+        }
+        else if (creditpage == 2) {
+            drawFromTxt(0.3f, 5.5f, 0.12f, "shuttle_audio_credit.txt", std::vector<std::string>(),
+                creditafter, GLUT_BITMAP_8_BY_13, { 38, -1 });
+        }
+        drawTextCenter_menu(5.0f, 0.4f, "Up/Down arrow to switch pages", GLUT_BITMAP_9_BY_15);
         drawTextCenter_menu(5.0f, 0.2f, "Press Backspace to go back", GLUT_BITMAP_9_BY_15);
         break;
     case Quit:
@@ -534,6 +592,13 @@ void display() {
 // void idle() {
 //     playMainTheme();
 // }
+
+const float aspectRatio = 4.0 / 3.0;
+
+void reshape(int width, int height) {
+    // Keep the window dimensions fixed
+    glutReshapeWindow(800, 600);
+}
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
@@ -554,8 +619,9 @@ int main(int argc, char** argv) {
     glutKeyboardUpFunc(keyboardUp);
     glutSpecialFunc(specialKeys);
     // glutIdleFunc(idle);
+    glutReshapeFunc(reshape);
 
-    resetValues();
+    // resetValues();
 
     glutTimerFunc(0, update, 0);
 

@@ -2,5 +2,5 @@
 .vscode/
 mingw32/
 build/
+unused/
 shuttle_build.evb
-menutest.cpp

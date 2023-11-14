@@ -82,8 +82,17 @@ Converted to 24bit pcm wav, decreased the volume to 50%
 - `Game over sounds 1.wav` by afleetingspeck on [freesound.org](https://freesound.org/people/afleetingspeck/sounds/232444/)
 Cutted so that only the first part is used
 
-- `pause.mp3`` by crisstanza on [freesound.org](https://freesound.org/people/crisstanza/sounds/167127/)
+- `pause.mp3` by crisstanza on [freesound.org](https://freesound.org/people/crisstanza/sounds/167127/)
 Converted to 24bit pcm wav, decreased the volume to 60%
+
+- `Chiptune Loop Episode 01.wav` by orginaljun on [freesound.org](https://freesound.org/people/orginaljun/sounds/396960/)
+Decreased the tempo by 30%
+
+- `Menu screen mouse over.wav` by DrMinky on [freesound.org](https://freesound.org/people/DrMinky/sounds/166186/)
+Amplified by 15dB
+
+- `SFX UI Button Click.wav` by suntemple on [freesound.org](https://freesound.org/people/suntemple/sounds/253168/)
+Amplified by 15dB
 
 ## Used Libraries
 - [GLUT](https://www.opengl.org/resources/libraries/glut/glut_downloads.php)/[FreeGLUT](https://github.com/FreeGLUTProject/freeglut)
