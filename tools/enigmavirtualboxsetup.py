@@ -29,7 +29,7 @@ if os.path.exists(build_folder_path) and os.path.isdir(build_folder_path):
     text_to_write = f"""<?xml version="1.0" encoding="windows-1252"?>
 <>
   <InputFile>{uprcsdrv(os.path.join(build_folder_path, "ShuttleMadness.exe"))}</InputFile>
-  <OutputFile>{uprcsdrv(os.path.join(build_folder_path, "ShuttleMadness_boxed.exe"))}</OutputFile>
+  <OutputFile>{uprcsdrv(os.path.join(build_folder_path, "ShuttleMadnessPortable.exe"))}</OutputFile>
   <Files>
     <Enabled>True</Enabled>
     <DeleteExtractedOnExit>False</DeleteExtractedOnExit>
@@ -46,6 +46,7 @@ if os.path.exists(build_folder_path) and os.path.isdir(build_folder_path):
     
     # Define the list of file extensions to search for
     file_extensions = [".png", ".wav", ".dll"]
+    specificfile = ["shuttle_howtoplay.txt", "shuttle_audio_credit.txt"]
 
     # Iterate over the files in the build folder with specified extensions
     for file in os.listdir(build_folder_path):
@@ -66,6 +67,24 @@ if os.path.exists(build_folder_path) and os.path.isdir(build_folder_path):
             <HideFromDialogs>0</HideFromDialogs>
           </File>
 """
+
+        elif any((file == filename) for filename in specificfile):
+            file_path = uprcsdrv(os.path.join(build_folder_path, file))
+            
+            # Add the XML snippet to "test.evb" for each file
+            text_to_write += f"""          <File>
+            <Type>2</Type>
+            <Name>{file}</Name>
+            <File>{file_path}</File>
+            <ActiveX>False</ActiveX>
+            <ActiveXInstall>False</ActiveXInstall>
+            <Action>0</Action>
+            <OverwriteDateTime>False</OverwriteDateTime>
+            <OverwriteAttributes>False</OverwriteAttributes>
+            <PassCommandLine>False</PassCommandLine>
+            <HideFromDialogs>0</HideFromDialogs>
+          </File>
+"""  
     
     text_to_write += f"""        </Files>
       </File>
@@ -143,6 +162,6 @@ if os.path.exists(build_folder_path) and os.path.isdir(build_folder_path):
     with open(shuttle_build_path, 'w') as evb_file:
         evb_file.write(text_to_write)
     
-    print(f"Text has been written to '{shuttle_build_path}'")
+    print(f"evb file written to '{shuttle_build_path}'")
 else:
     print(f"'{folder_name}' folder not found in the script's directory.")
