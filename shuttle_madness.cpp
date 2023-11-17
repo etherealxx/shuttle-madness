@@ -1,3 +1,7 @@
+// 2023 Jibril Wathon
+// github.com/etherealxx
+// Public Domain
+
 #include <GL/glut.h>
 #include <vector>
 #include <algorithm>
@@ -96,7 +100,7 @@ std::vector<std::string> creditafter = { "","shuttle_knight.png by Ikhsan Ridwan
 "Additional credits and information can be read at https://github.com/etherealxx/shuttle-madness" };
 int creditpage = 1;
 
-float pinkColor[3] = { 1.0f, 0.0f, 0.5f };
+// float pinkColor[3] = { 1.0f, 0.0f, 0.5f };
 PlayerHitbox playerHitbox(playerX, playerY, playerSizeY, isKnightLoaded);
 
 void resetValues() {
@@ -134,7 +138,7 @@ void resetValues() {
     isPaused = false;
 }
 
-// void printAudioFilePaths() { //for testing
+// void printAudioFilePaths() { // for testing
 //     for (Sound* sound : Sound::everySound) {
 //         string audioFilePath = scriptDir + "\\" + sound->audioFilename;  // Construct the relative path
 //         writeDebugText(audioFilePath);
@@ -227,7 +231,7 @@ void playingKeyboardDown(unsigned char& key) {
             if (key == 8) { // backspace
                 playAudioOnClick(menuClickSound, checkmutedsfx);
                 gameState = Menu;
-                if (menuThemeSound.isStopped()) restoreLoop(menuThemeSound);
+                if (menuThemeSound.isStopped() && !checkmutedmusic) restoreLoop(menuThemeSound);
             }
             if (key == 127) resetGame(); // Delete button
         }
@@ -242,7 +246,7 @@ void playingKeyboardDown(unsigned char& key) {
         if (key == 8) { // backspace
             playAudioOnClick(menuClickSound, checkmutedsfx);
             gameState = Menu;
-            if (menuThemeSound.isStopped()) restoreLoop(menuThemeSound);
+            if (menuThemeSound.isStopped() && !checkmutedmusic) restoreLoop(menuThemeSound);
         }
         if (key == 10 or key == 13) resetGame(); // enter
     }
@@ -334,14 +338,12 @@ void keyboardUp(unsigned char key, int x, int y) {
             }
             else if (key == 's') {
                 if (isGrounded) {
-                    // Stop ducking if 'S' is released, and the playenr is grounded
+                    // Stop ducking if 'S' is released, and the player is grounded
                     isDucking = false;
                     playerSizeY = 1.0f;
                     if (keyRightPressed) playerVelocityX = 0.1f;
                     if (keyLeftPressed) playerVelocityX = -0.1f;
-                    // // Indicate that 'S' was recently released and start the timer.
-                    // releasedS = true;
-                    extraJumpTimer = 10; // Set the timer duration (adjust as needed).
+                    extraJumpTimer = 10; // Set the timer duration
                 }
                 else {}
 
@@ -392,9 +394,6 @@ void playingupdate() { // splitted from void update(), this is everything inside
 
         // writeDebugText("shuttlecockTimeToSpawn: " + std::to_string(shuttlecockTimeToSpawn));
 
-        // int randomBlack = rand() % 5; // blacktest (0 to 4)
-        // if (randomBlack == 0) spawnShuttlecock(SC_BLACK);
-
         // type of shuttlecock spawned handled here
         int randomBlack = rand() % 11; // blacktest (0 to 10)
         if (randomBlack < 2) spawnShuttlecock(SC_YELLOW);
@@ -438,7 +437,6 @@ void playingupdate() { // splitted from void update(), this is everything inside
     }
 }
 
-// Function to update the game state
 void update(int value) {
 
     switch (gameState) {
@@ -480,7 +478,7 @@ void update(int value) {
 }
 
 void gameDisplay() { // splitted from void display(), everything inside it before the menu
-    // drawPlayerSquare(playerX, playerY, playerSizeY); // Draw the player character
+    // drawPlayerSquare(playerX, playerY, playerSizeY); // Draw the player character (replaced with the image sprite)
 
     if (flickeringTimer < visibleFrameDuringFlicker) {
         if (isKnightLoaded) {
@@ -495,7 +493,7 @@ void gameDisplay() { // splitted from void display(), everything inside it befor
     }
     // drawPlayerHitbox(playerX, playerY, playerSizeY, true); // Debugging hitbox
     // playerHitbox.drawDummy(); // Debugging hitbox
-    float racketColor[3] = { 1.0, 1.0, 1.0 }; // Red color (RGB)
+    float racketColor[3] = { 1.0, 1.0, 1.0 };
     if (isSwingingRacket) {
         drawQuad(playerX + 1.35, playerY + 0.45, 0.7, 0.05, racketColor);
         drawHollowEllipse(playerX + 2.2, playerY + 0.5, 0.5, 0.3, 4, racketColor);
@@ -505,7 +503,6 @@ void gameDisplay() { // splitted from void display(), everything inside it befor
         drawRotatedQuad(playerX + 1.09, playerY + 0.8, 0.7, 0.05, 80, racketColor);
         drawRotatedHollowEllipse(playerX + 1.2, playerY + 1.6, 0.5, 0.1, 4, 80, racketColor);
     }
-    // drawEllipse(playerX + 2.2, playerY + 0.5, 0.5, 0.3, circleColor);
 
     for (const Shuttlecock& shuttlecock : shuttlecocks) {
         shuttlecock.draw(); // Draw the shuttlecocks
@@ -518,7 +515,6 @@ void gameDisplay() { // splitted from void display(), everything inside it befor
             drawHeart(i * 0.7f + 0.1f, 5.5f, 0.6f);
         }
     }
-    // drawDebugText(3.0f, 5.8f);
     if (isPlaying) {
         drawText(0.1f, 5.3f, "Score: " + std::to_string(score));
         drawText(0.1f, 5.1f, "Highscore: " + std::to_string(highScore));
@@ -541,7 +537,6 @@ void gameDisplay() { // splitted from void display(), everything inside it befor
 
 }
 
-// Function to draw the game scene
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -555,7 +550,7 @@ void display() {
         drawTextCenter_menu(5.0f, 5.0f, "Shuttle Madness", GLUT_BITMAP_TIMES_ROMAN_24);
         menuItem.draw();
         drawTextCenter_menu(5.0f, 0.4f, "Press Enter to select", GLUT_BITMAP_9_BY_15);
-        // drawShuttlecock(5.0f, 3.0f, 90, 1.0f, pinkColor);
+        // drawShuttlecock(5.0f, 3.0f, 90, 1.0f, pinkColor); // unused for background
         break;
     case How_to_Play:
         drawFromTxt(0.3f, 4.0f, 0.15f, "shuttle_howtoplay.txt",
@@ -589,7 +584,7 @@ void display() {
     glutSwapBuffers();
 }
 
-// void idle() {
+// void idle() { // unused, old way to play audio
 //     playMainTheme();
 // }
 
@@ -637,12 +632,12 @@ int main(int argc, char** argv) {
 
     delete[] icon_data; // deallocate memory for icon
 
-    // initializeShuttlecocks();
+    // initializeShuttlecocks(); // early testing for balancing
 
     scriptDir = std::filesystem::path(argv[0]).parent_path().string();
     // writeDebugText("scriptDir: " + scriptDir);
 
-    // printAudioFilePaths();
+    // printAudioFilePaths(); // testing
 
     initializeEveryAudio();
 

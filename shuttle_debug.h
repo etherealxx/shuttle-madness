@@ -26,17 +26,6 @@ void drawDebugText(float x, float y) {
     glPopMatrix();
 }
 
-// void writeDebugText(const std::string& text) {
-//     textLines.push_back(text);
-
-//     // If we have more lines than can fit in the window, remove the oldest line
-//     if (textLines.size() * 0.2 > 6.0) {
-//         textLines.erase(textLines.begin());
-//     }
-
-//     glutPostRedisplay();
-// }
-
 void writeDebugText(const std::string& text) {
     std::istringstream iss(text);
     std::string line;

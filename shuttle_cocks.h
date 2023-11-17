@@ -165,7 +165,6 @@ public:
         if (inMotion) {
 
             std::vector<float> shuttleCockColorVector;
-            //  = (flags & SC_BLACK) ? std::vector<float>{0.3f, 0.3f, 0.3f} : std::vector<float>{ 1.0f, 0.0f, 0.5f };
 
             switch (flags) {
             case SC_BLACK:
@@ -240,10 +239,13 @@ public:
         glLineStipple(1, 0x00FF);
         glEnable(GL_LINE_STIPPLE);
         glBegin(GL_LINE_LOOP);
+
+        // forgot why these are commented
         // glVertex2f(x, y); // x, y : (0.2f, 0.0f)
         // glVertex2f(x, y + height); // x, y + height : (0.2f, 0.8f)
         // glVertex2f(x + width, y + height); // x + width, y + height : (0.85f, 0.8f)
         // glVertex2f(x + width, y); // x + width, y : (0.85f, 0.0f)
+
         glVertex2f((knightMode ? 0.0f : 0.2f), 0.0f); // Start from (0, 0)
         glVertex2f((knightMode ? 0.0f : 0.2f), height); // Move up to (0, height)
         glVertex2f(width, height); // Move right to (width, height)

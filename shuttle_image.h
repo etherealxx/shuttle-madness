@@ -17,7 +17,7 @@ class Image {
 public:
     Image(const std::string& filename) : image(nullptr) {
         std::string imagePath = findImage(filename);
-        // std::string imagePath = scriptDir + "\\" + filename;  // Construct the relative path
+        // std::string imagePath = scriptDir + "\\" + filename;  // Construct the relative path (somehow doesn't work)
         if (loadImage(imagePath, image, width, height, numChannels)) {
             stbi__vertical_flip(image, width, height, numChannels);
             if (numChannels == 3) GLcolorchannel = GL_RGB;

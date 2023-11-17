@@ -139,6 +139,7 @@ public:
         // Let's say you have glOrtho(a, b, c, d, e, f);
         // then alignmentFactor is about ((b - a) * 3 / 500) based on my trial and error
         // old calculation: ((b - a) / 200)
+        // this calculation might be VERY wrong
         float alignmentFactor = 0.06f;
 
         for (int i = 0; i < itemCount; i++) {

@@ -4,6 +4,7 @@
 <!-- <p align="center">
   <img src="https://github.com/etherealxx/shuttle-madness/assets/64251396/0bc9834d-fad1-4e6c-aa57-82a3e6d8e951" alt="shuttle-madness" width="500"/>
 </p> -->
+![shuttle_anim](https://github.com/etherealxx/shuttle-madness/assets/64251396/78e1388d-d4e6-46f2-98b4-1b0e641b3d8f)
 
 ## Workspace Setup (VSCode, the easy way)
 - Clone this repository
@@ -12,6 +13,12 @@
 - Inside, copy 'mingw' and '.vscode' folder into this repo's folder you've cloned earlier (`shuttle-madness`)
 - On VSCode, install an extension called Run++ ([this one](https://marketplace.visualstudio.com/items?itemName=AlbinBD.run))
 - Still on VSCode, `File > Open Folder...` and choose the cloned directory (`shuttle-madness`)
+
+#### The Manual Way
+I haven't tried this myself, but you need to do a GLUT installation by yourself, and run the program with this (there might be other dependencies, tbh idk how to install those manually).
+```
+g++.exe shuttle_madness.cpp -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32 -Wl,--subsystem,windows -o shuttle_madness
+```
 
 ## Running the game
 - Open `shuttle_madness.cpp`
@@ -25,10 +32,11 @@
 
 ## Building the game
 - Download cmake from [here](https://cmake.org/download/) and install it. (Choose the Windows x64 Installer, recommended to install for all user).
+- **Note:** Apparently you need mingw64 from MSYS2 to build this game. I don't know why, but it wouldn't work when i tried to build it using the mingw32 from the `OpenGL Programming` folder. You can install MSYS2 from [here](https://github.com/msys2/msys2-installer/releases/download/2023-10-26/msys2-x86_64-20231026.exe)
 
 #### Python Method (assuming you installed one)
 - Run `cmakeautomate.py` inside the `tools` folder
-- Go to newly made `build` folder, the executable name is `ShuttleMadness.exe` (it needs the png and wav files to be on the same directory as it).
+- Go to newly made `build` folder, the executable name is `ShuttleMadness.exe` (it needs the png and wav files to be on the same directory as it). There will also a zip file that contains everything you need to run the game.
 
 #### Manual Method
 - Inside the repo folder, create a new folder named `build`
@@ -50,14 +58,14 @@ ninja
 - Run `enigmavirtualboxsetup.py` inside the `tools` folder
 - Double click the `shuttle_build.evb`, it should open the Enigma Virtual Box app.
 - Click `Process` on the bottom right
-- Visit `build` folder, the executable name is `ShuttleMadness_boxed.exe` (you can move it wherever you like)
+- Visit `build` folder, the executable name is `ShuttleMadnessPortable.exe` (you can move it wherever you like)
 
 #### Manual Method (assuming you installed one)
 - Open the Enigma Virtual Box app.
 - Browse the input file name, choose the newly built `ShuttleMadness.exe`
 - Click `Add > Add File(s)`, choose every png and wav file inside the `build` folder
 - Click `Process` on the bottom right
-- Visit `build` folder, the executable name is `ShuttleMadness_boxed.exe` (you can move it wherever you like)
+- Visit `build` folder, the executable name is `ShuttleMadnessPortable.exe` (you can move it wherever you like)
 
 ## Attribution
 - `Arcade Music Loop.wav` by joshuaempyre on [freesound.org](https://freesound.org/people/joshuaempyre/sounds/251461/)
