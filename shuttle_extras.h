@@ -273,9 +273,15 @@ void drawRotatedQuad(float anchorX, float anchorY, float width, float height, fl
     glPopMatrix();
 }
 
-void drawText(float x, float y, std::string texttotype, void* font = GLUT_BITMAP_9_BY_15) {
+void drawText(float x, float y, std::string texttotype, void* font = GLUT_BITMAP_9_BY_15,
+    std::vector<float> colorVector = { 1.0f, 1.0f, 1.0f }) {
+
     glPushMatrix();
-    glColor3f(1.0f, 1.0f, 1.0f);
+    float color[3];
+    for (size_t i = 0; i < colorVector.size(); ++i) {
+        color[i] = colorVector[i];
+    }
+    glColor3fv(color);
     // Display each line of text
     glRasterPos2f(x, y);
 
@@ -306,6 +312,20 @@ void drawTextCenter(float x, float y, const std::string& text, void* font = GLUT
     // drawText(x, y, to_string(adjusted_xpos));
     // drawText(x, y, text);
     drawText(adjusted_xpos, y, text, font);
+}
+
+void drawDebugLine() { // Draw two vertical lines in the middle of the screen
+    glColor3f(1.0, 1.0, 1.0);
+
+    glBegin(GL_LINES);
+    glVertex2f(5.0, 0.0);
+    glVertex2f(5.0, 6.0);
+    glEnd();
+
+    glBegin(GL_LINES);
+    glVertex2f(0.0, 3.0);
+    glVertex2f(10.0, 3.0);
+    glEnd();
 }
 
 // class PlayerHitbox {}

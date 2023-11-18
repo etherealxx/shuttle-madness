@@ -11,6 +11,12 @@ file(GLOB HEADERS "*.h")
 # Add resource files
 file(GLOB RESOURCES "*.wav" "*.png")
 
+# Add texts files
+set(TEXTS
+    shuttle_howtoplay.txt
+    shuttle_audio_credit.txt
+)
+
 # Add dll files
 file(GLOB DLL_FILES "*.dll")
 
@@ -32,6 +38,11 @@ target_link_libraries(ShuttleMadness PRIVATE OpenGL::GL GLUT::GLUT)
 # Copy resource files to the build directory
 foreach(RESOURCE ${RESOURCES})
     configure_file(${RESOURCE} ${CMAKE_BINARY_DIR} COPYONLY)
+endforeach()
+
+# Copy text files to the build directory
+foreach(TEXT ${TEXTS})
+    configure_file(${TEXT} ${CMAKE_BINARY_DIR} COPYONLY)
 endforeach()
 
 # Copy dll files to the build directory

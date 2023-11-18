@@ -1,3 +1,7 @@
+// 2023 Jibril Wathon
+// github.com/etherealxx
+// Public Domain
+
 #ifndef SHUTTLE_IMAGE_H
 #define SHUTTLE_IMAGE_H
 
@@ -9,37 +13,11 @@
 using namespace std;
 extern string scriptDir;
 
-// class Image {
-// public:
-//     int width, height, numChannels, GLcolorchannel;
-//     string imageFilePath;
-//     unsigned char* image = nullptr;
-
-//     Image() {};
-//     Image(string filename) {
-//         imageFilePath = scriptDir + "\\" + filename;  // Construct the relative path
-//         image = stbi_load(imageFilePath.c_str(), &width, &height, &numChannels, 0);
-//         if (image) {
-//             stbi__vertical_flip(image, width, height, numChannels);
-//             if (numChannels == 3) GLcolorchannel = GL_RGB;
-//             else if (numChannels == 4) GLcolorchannel = GL_RGBA;
-//         }
-//     }
-
-//     void free() {
-//         stbi_image_free(image);
-//     }
-
-//     void draw() {
-//         glDrawPixels(width, height, GLcolorchannel, GL_UNSIGNED_BYTE, image);
-//     }
-// };
-
 class Image {
 public:
     Image(const std::string& filename) : image(nullptr) {
         std::string imagePath = findImage(filename);
-        // std::string imagePath = scriptDir + "\\" + filename;  // Construct the relative path
+        // std::string imagePath = scriptDir + "\\" + filename;  // Construct the relative path (somehow doesn't work)
         if (loadImage(imagePath, image, width, height, numChannels)) {
             stbi__vertical_flip(image, width, height, numChannels);
             if (numChannels == 3) GLcolorchannel = GL_RGB;

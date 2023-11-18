@@ -1,3 +1,7 @@
+// 2023 Jibril Wathon
+// github.com/etherealxx
+// Public Domain
+
 #include <GL/glut.h>
 #include <vector>
 #include <algorithm>
@@ -9,7 +13,10 @@
 #include "shuttle_sound.h"
 #include "shuttle_image.h"
 #include "shuttle_explosion.h"
+#include "shuttle_menu.h"
 // #include "shuttle_debug.h"
+
+State gameState = Menu;
 
 // Game variables, sorted by the moment it was being added
 // Except images and sounds as they're grouped together
@@ -47,7 +54,7 @@ int visibleFrameDuringFlicker = 4;
 float shuttleCockOutofBoundLimit = 15.0f;
 
 std::string scriptDir;
-Sound mainThemeSound("maintheme_20.wav", IS_LOOPING);
+Sound mainThemeSound("maintheme_20.wav", INIT_ONLY | IS_LOOPING);
 Sound jumpSound("jump.wav", INIT_ONLY);
 Sound racketSwingSound("racketswing.wav", INIT_ONLY);
 Sound racketHitSound("rackethit.wav", INIT_ONLY);
@@ -56,6 +63,9 @@ Sound clankSound("clank_50.wav", INIT_ONLY);
 Sound explosionSound("explosion_50.wav", INIT_ONLY);
 Sound gameOverSound("gameover.wav", INIT_ONLY);
 Sound pauseSound("pause_60.wav", INIT_ONLY);
+Sound menuThemeSound("menutheme_70.wav", IS_LOOPING);
+Sound menuHoverSound("menuhover_amp.wav", INIT_ONLY);
+Sound menuClickSound("menuclick_amp.wav", INIT_ONLY);
 
 std::vector<Shuttlecock> shuttlecocks;
 std::vector<std::string> textLines;
@@ -63,6 +73,7 @@ std::vector<std::string> textLines;
 Image shuttleKnight("shuttle_knight.png");
 Image shuttleKnightDuck("shuttle_knight_duck.png");
 Image shuttleKnightDefeat("shuttle_knight_defeat.png");
+Image shuttleMenuBackground("shuttle_menu_background_2.png");
 
 float shuttlecockSpawnTimer = 0.0f;
 float shuttlecockTimeToSpawn = 3.0f;
@@ -76,6 +87,23 @@ bool deadTrigger = false;
 int highScore = 0;
 
 bool isPaused = false;
+
+Title menuItem({ "Play","How to Play","Options","Credit", "Quit" });
+Title optionsItem({ "[v] Music", "[v] Sound Effects" }, 0,
+    { "[  ] Music", "[  ] Sound Effects" });
+
+bool checkmutedsfx = false;
+bool checkmutedmusic = false;
+
+std::vector<std::string> creditbefore = { "Game made by etherealxx","With occasional help from ChatGPT","" };
+std::vector<std::string> creditafter = { "","shuttle_knight.png by Ikhsan Ridwan","",
+"Additional credits and information can be read at https://github.com/etherealxx/shuttle-madness" };
+int creditpage = 1;
+
+std::string buildInfo;
+
+// float pinkColor[3] = { 1.0f, 0.0f, 0.5f };
+PlayerHitbox playerHitbox(playerX, playerY, playerSizeY, isKnightLoaded);
 
 void resetValues() {
     keyLeftPressed = false;
@@ -112,14 +140,12 @@ void resetValues() {
     isPaused = false;
 }
 
-// void printAudioFilePaths() { //for testing
+// void printAudioFilePaths() { // for testing
 //     for (Sound* sound : Sound::everySound) {
 //         string audioFilePath = scriptDir + "\\" + sound->audioFilename;  // Construct the relative path
 //         writeDebugText(audioFilePath);
 //     }
 // }
-
-PlayerHitbox playerHitbox(playerX, playerY, playerSizeY, isKnightLoaded);
 
 void gameOverTrigger() {
     if (!deadTrigger) {
@@ -128,12 +154,23 @@ void gameOverTrigger() {
         stopLoop(mainThemeSound);
         playerVelocityX = 0;
         playerVelocityY = 0;
-        playAudioOnClick(gameOverSound);
+        playAudioOnClick(gameOverSound, checkmutedsfx);
         if (score > highScore) highScore = score;
     }
 }
 
-void keyboardDown(unsigned char key, int x, int y) {
+void resetGame() {
+    lives = 3;
+    isPlaying = true;
+    deadTrigger = false;
+    resetValues();
+    restoreLoop(mainThemeSound);
+    for (Shuttlecock& shuttlecock : shuttlecocks) {
+        shuttlecock.toRemove = true; // Draw the shuttlecocks
+    }
+}
+
+void playingKeyboardDown(unsigned char& key) {
     if (isPlaying) {
         if (!isPaused) {
             if (key == 'd') {
@@ -161,7 +198,7 @@ void keyboardDown(unsigned char key, int x, int y) {
                     jumpCount++;
                     playerVelocityY = 0.2f + extraJumpHeight;
                     isGrounded = false;
-                    playAudioOnClick(jumpSound);
+                    playAudioOnClick(jumpSound, checkmutedsfx);
                 }
 
             }
@@ -188,60 +225,140 @@ void keyboardDown(unsigned char key, int x, int y) {
                 if (racketTimer == 0 && racketCooldownTimer == 0) {
                     racketTimer = 10;
                     racketCooldownTimer = 20;
-                    playAudioOnClick(racketSwingSound);
+                    playAudioOnClick(racketSwingSound, checkmutedsfx);
                 }
             }
+        }
+        else { // game paused
+            if (key == 8) { // backspace
+                playAudioOnClick(menuClickSound, checkmutedsfx);
+                gameState = Menu;
+                if (menuThemeSound.isStopped() && !checkmutedmusic) restoreLoop(menuThemeSound);
+            }
+            if (key == 127) resetGame(); // Delete button
         }
 
         if (key == 27) { // esc
             isPaused = !isPaused; // toggle/trigger pausing
-            if (isPaused) playAudioOnClick(pauseSound);
+            if (isPaused) playAudioOnClick(pauseSound, checkmutedsfx);
             else restoreLoop(mainThemeSound, "resume");
         }
     }
     else {
-        if (key == 10 or key == 13) { // enter
-            lives = 3;
-            isPlaying = true;
-            deadTrigger = false;
-            resetValues();
-            restoreLoop(mainThemeSound);
-            for (Shuttlecock& shuttlecock : shuttlecocks) {
-                shuttlecock.toRemove = true; // Draw the shuttlecocks
+        if (key == 8) { // backspace
+            playAudioOnClick(menuClickSound, checkmutedsfx);
+            gameState = Menu;
+            if (menuThemeSound.isStopped() && !checkmutedmusic) restoreLoop(menuThemeSound);
+        }
+        if (key == 10 or key == 13) resetGame(); // enter
+    }
+}
+
+void keyup_or_w_pressed() {
+    if (gameState == Menu) {
+        menuItem.selectUpward();
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
+    }
+    else if (gameState == Options) {
+        optionsItem.selectUpward();
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
+    }
+    else if (gameState == Credit) {
+        creditpage = (creditpage == 1) ? 2 : 1; // toggle between 1 or 2
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
+    }
+    // towrite = "menu item: " + to_string(menuItem.getSelected()); // debug
+}
+
+void keydown_or_s_pressed() {
+    if (gameState == Menu) {
+        menuItem.selectDownward();
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
+    }
+    else if (gameState == Options) {
+        optionsItem.selectDownward();
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
+    }
+    else if (gameState == Credit) {
+        creditpage = (creditpage == 1) ? 2 : 1; // toggle between 1 or 2
+        playAudioOnClick(menuHoverSound, checkmutedsfx);
+    }
+    // towrite = "menu item: " + to_string(menuItem.getSelected()); // debug
+}
+
+void keyboardDown(unsigned char key, int x, int y) {
+    if (gameState == Play) playingKeyboardDown(key);
+    else {
+        if (key == 'w') keyup_or_w_pressed();
+        else if (key == 's') keydown_or_s_pressed();
+        else if (key == 10 or key == 13) { // enter key
+            if (gameState == Menu) {
+                playAudioOnClick(menuClickSound, checkmutedsfx);
+                gameState = static_cast<State>(menuItem.getSelected() + 1);
+                if (gameState == Play) {
+                    stopLoop(menuThemeSound);
+                    if (mainThemeSound.isInitOnly()) {
+                        playAudioOnClick(mainThemeSound, checkmutedmusic);
+                    }
+                }
+            }
+            else if (gameState == Options) {
+                playAudioOnClick(menuClickSound, checkmutedsfx);
+                optionsItem.switchItemState();
+                checkmutedmusic = (optionsItem.getStateFromIndex(0) == 1);
+                checkmutedsfx = (optionsItem.getStateFromIndex(1) == 1);
+                if (checkmutedmusic) stopLoop(menuThemeSound);
+                else {
+                    if (menuThemeSound.isStopped()) restoreLoop(menuThemeSound);
+                }
+
+            }
+        }
+        if (gameState != Menu) { // not in the menu
+            if (key == 8) { // backspace
+                playAudioOnClick(menuClickSound, checkmutedsfx);
+                gameState = Menu;
             }
         }
     }
 }
 
 void keyboardUp(unsigned char key, int x, int y) {
-    if (isPlaying) {
-        if (key == 'd') {
-            keyRightPressed = false;
-            if (!keyLeftPressed) {
-                playerVelocityX = 0.0f;
+    if (gameState == Play) {
+        if (isPlaying) {
+            if (key == 'd') {
+                keyRightPressed = false;
+                if (!keyLeftPressed) {
+                    playerVelocityX = 0.0f;
+                }
             }
-        }
-        else if (key == 'a') {
-            keyLeftPressed = false;
-            if (!keyRightPressed) {
-                playerVelocityX = 0.0f;
+            else if (key == 'a') {
+                keyLeftPressed = false;
+                if (!keyRightPressed) {
+                    playerVelocityX = 0.0f;
+                }
             }
-        }
-        else if (key == 's') {
-            if (isGrounded) {
-                // Stop ducking if 'S' is released, and the playenr is grounded
-                isDucking = false;
-                playerSizeY = 1.0f;
-                if (keyRightPressed) playerVelocityX = 0.1f;
-                if (keyLeftPressed) playerVelocityX = -0.1f;
-                // // Indicate that 'S' was recently released and start the timer.
-                // releasedS = true;
-                extraJumpTimer = 10; // Set the timer duration (adjust as needed).
-            }
-            else {}
+            else if (key == 's') {
+                if (isGrounded) {
+                    // Stop ducking if 'S' is released, and the player is grounded
+                    isDucking = false;
+                    playerSizeY = 1.0f;
+                    if (keyRightPressed) playerVelocityX = 0.1f;
+                    if (keyLeftPressed) playerVelocityX = -0.1f;
+                    extraJumpTimer = 10; // Set the timer duration
+                }
+                else {}
 
+            }
         }
     }
+}
+
+void specialKeys(int key, int x, int y) {
+    if (key == GLUT_KEY_UP) keyup_or_w_pressed();
+    else if (key == GLUT_KEY_DOWN) keydown_or_s_pressed();
+
+    glutPostRedisplay();
 }
 
 void playingupdate() { // splitted from void update(), this is everything inside if (isPlaying)
@@ -279,9 +396,6 @@ void playingupdate() { // splitted from void update(), this is everything inside
 
         // writeDebugText("shuttlecockTimeToSpawn: " + std::to_string(shuttlecockTimeToSpawn));
 
-        // int randomBlack = rand() % 5; // blacktest (0 to 4)
-        // if (randomBlack == 0) spawnShuttlecock(SC_BLACK);
-
         // type of shuttlecock spawned handled here
         int randomBlack = rand() % 11; // blacktest (0 to 10)
         if (randomBlack < 2) spawnShuttlecock(SC_YELLOW);
@@ -303,7 +417,7 @@ void playingupdate() { // splitted from void update(), this is everything inside
             shuttlecock.toRemove = true;
             damageInvincibilityTimer = 120;
             lives--;
-            playAudioOnClick(damagedSound);
+            playAudioOnClick(damagedSound, checkmutedsfx);
         }
 
         // Check if a shuttlecock is out of bounds
@@ -325,46 +439,48 @@ void playingupdate() { // splitted from void update(), this is everything inside
     }
 }
 
-// Function to update the game state
 void update(int value) {
 
-    if (lives <= 0) gameOverTrigger();
+    switch (gameState) {
+    case Play:
+        if (lives <= 0) gameOverTrigger();
 
-    if (!isPaused) {
-        // Update player position based on velocity
-        playerX += playerVelocityX;
-        playerY += playerVelocityY;
+        if (!isPaused) {
+            // Update player position based on velocity
+            playerX += playerVelocityX;
+            playerY += playerVelocityY;
 
-        // Apply gravity to the player (simulate falling)
-        playerVelocityY -= 0.01f;
+            // Apply gravity to the player (simulate falling)
+            playerVelocityY -= 0.01f;
 
-        // Keep the player within the screen bounds
-        if (playerX < -0.0f) playerX = -0.0f;
-        if (playerX > 9.0f) playerX = 9.0f;
+            // Keep the player within the screen bounds
+            if (playerX < -0.0f) playerX = -0.0f;
+            if (playerX > 9.0f) playerX = 9.0f;
 
-        if (playerY < 0.0f) {
-            playerY = 0.0f;
-            playerVelocityY = 0.0f; // Stop falling
-            jumpCount = 0;
-            isGrounded = true;
-            isFastFalling = false;
+            if (playerY < 0.0f) {
+                playerY = 0.0f;
+                playerVelocityY = 0.0f; // Stop falling
+                jumpCount = 0;
+                isGrounded = true;
+                isFastFalling = false;
+            }
+
+            if (isPlaying) playingupdate();
         }
-
-        if (isPlaying) playingupdate();
-    }
-    else {
-        stopLoop(mainThemeSound);
-    }
+        else stopLoop(mainThemeSound);
+        break;
+    case Quit:
+        glutDestroyWindow(glutGetWindow());
+        exit(0); // just in case
+        break;
+    };
 
     glutPostRedisplay();
     glutTimerFunc(16, update, 0); // 60 FPS
 }
 
-// Function to draw the game scene
-void display() {
-
-    glClear(GL_COLOR_BUFFER_BIT);
-    // drawPlayerSquare(playerX, playerY, playerSizeY); // Draw the player character
+void gameDisplay() { // splitted from void display(), everything inside it before the menu
+    // drawPlayerSquare(playerX, playerY, playerSizeY); // Draw the player character (replaced with the image sprite)
 
     if (flickeringTimer < visibleFrameDuringFlicker) {
         if (isKnightLoaded) {
@@ -379,7 +495,7 @@ void display() {
     }
     // drawPlayerHitbox(playerX, playerY, playerSizeY, true); // Debugging hitbox
     // playerHitbox.drawDummy(); // Debugging hitbox
-    float racketColor[3] = { 1.0, 1.0, 1.0 }; // Red color (RGB)
+    float racketColor[3] = { 1.0f, 1.0f, 1.0f };
     if (isSwingingRacket) {
         drawQuad(playerX + 1.35, playerY + 0.45, 0.7, 0.05, racketColor);
         drawHollowEllipse(playerX + 2.2, playerY + 0.5, 0.5, 0.3, 4, racketColor);
@@ -389,7 +505,6 @@ void display() {
         drawRotatedQuad(playerX + 1.09, playerY + 0.8, 0.7, 0.05, 80, racketColor);
         drawRotatedHollowEllipse(playerX + 1.2, playerY + 1.6, 0.5, 0.1, 4, 80, racketColor);
     }
-    // drawEllipse(playerX + 2.2, playerY + 0.5, 0.5, 0.3, circleColor);
 
     for (const Shuttlecock& shuttlecock : shuttlecocks) {
         shuttlecock.draw(); // Draw the shuttlecocks
@@ -402,28 +517,88 @@ void display() {
             drawHeart(i * 0.7f + 0.1f, 5.5f, 0.6f);
         }
     }
+    if (isPlaying) {
+        drawText(0.1f, 5.3f, "Score: " + std::to_string(score));
+        drawText(0.1f, 5.1f, "Highscore: " + std::to_string(highScore));
+    }
+    else {
+        drawTextCenter(5.0f, 3.2f, "Game Over", GLUT_BITMAP_TIMES_ROMAN_24);
+        drawTextCenter(5.0f, 2.9f, "Score: " + std::to_string(score), GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.7f, "Highscore: " + std::to_string(highScore), GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.5f, "You survived for " + std::to_string(secondPassed) + " seconds", GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.3f, "Press Enter to play again", GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.1f, "Press Backspace to go to menu", GLUT_BITMAP_HELVETICA_18);
+    }
 
-    glBegin(GL_LINES); // debug middle line
-    glVertex2f(5.0, 0.0);
-    glVertex2f(5.0, 6.0);
-    glEnd();
+    if (isPaused) {
+        drawTextCenter(5.0f, 3.0f, "Game Paused", GLUT_BITMAP_TIMES_ROMAN_24);
+        drawTextCenter(5.0f, 2.7f, "Press Esc to continue playing", GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.5f, "Press Backspace to go to menu", GLUT_BITMAP_HELVETICA_18);
+        drawTextCenter(5.0f, 2.3f, "Press Delete key to restart game", GLUT_BITMAP_HELVETICA_18);
+    }
 
-    // drawDebugText(3.0f, 5.8f);
-    if (isPlaying) drawText(0.1f, 5.3f, "Score: " + std::to_string(score));
-    if (isPlaying) drawText(0.1f, 5.1f, "Highscore: " + std::to_string(highScore));
-    if (!isPlaying) drawTextCenter(5.0f, 3.2f, "Game Over", GLUT_BITMAP_TIMES_ROMAN_24);
-    if (!isPlaying) drawTextCenter(5.0f, 2.9f, "Score: " + std::to_string(score), GLUT_BITMAP_HELVETICA_18);
-    if (!isPlaying) drawTextCenter(5.0f, 2.7f, "Highscore: " + std::to_string(highScore), GLUT_BITMAP_HELVETICA_18);
-    if (!isPlaying) drawTextCenter(5.0f, 2.5f, "You survived for " + std::to_string(secondPassed) + " seconds", GLUT_BITMAP_HELVETICA_18);
-    if (!isPlaying) drawTextCenter(5.0f, 2.3f, "Press Enter to play again", GLUT_BITMAP_HELVETICA_18);
-    if (isPaused) drawTextCenter(5.0f, 3.0f, "Game Paused", GLUT_BITMAP_TIMES_ROMAN_24);
-    if (isPaused) drawTextCenter(5.0f, 2.7f, "Press Esc to continue playing", GLUT_BITMAP_HELVETICA_18);
+}
+
+void display() {
+    glClear(GL_COLOR_BUFFER_BIT);
+
+    glColor3f(1.0f, 1.0f, 1.0f);
+
+    switch (gameState) {
+    case Play:
+        gameDisplay();
+        break;
+    case Menu:
+        shuttleMenuBackground.draw(0.1f, 0.1f);
+        // drawDebugLine();
+        drawTextCenter_menu(5.0f, 5.0f, "Shuttle Madness", GLUT_BITMAP_TIMES_ROMAN_24);
+        menuItem.draw();
+        drawTextCenter_menu(5.0f, 0.4f, "Press Enter to select", GLUT_BITMAP_9_BY_15);
+        drawText(0.2f, 5.8f, buildInfo, GLUT_BITMAP_8_BY_13, { 0.7f, 0.7f, 0.7f });
+        // drawShuttlecock(5.0f, 3.0f, 90, 1.0f, pinkColor); // unused for background
+        break;
+    case How_to_Play:
+        drawFromTxt(0.3f, 4.0f, 0.15f, "shuttle_howtoplay.txt",
+            std::vector<std::string>(), std::vector<std::string>(), GLUT_BITMAP_9_BY_15,
+            { 0, 35 });
+
+        drawTextCenter_menu(5.0f, 0.2f, "Press Backspace to go back", GLUT_BITMAP_9_BY_15);
+        break;
+    case Options:
+        optionsItem.draw();
+        drawTextCenter_menu(5.0f, 0.4f, "Press Enter to toggle", GLUT_BITMAP_9_BY_15);
+        drawTextCenter_menu(5.0f, 0.2f, "Press Backspace to go back", GLUT_BITMAP_9_BY_15);
+        break;
+    case Credit:
+        if (creditpage == 1) {
+            drawFromTxt(0.3f, 5.5f, 0.12f, "shuttle_audio_credit.txt", creditbefore,
+                std::vector<std::string>(), GLUT_BITMAP_8_BY_13, { 0, 37 });
+        }
+        else if (creditpage == 2) {
+            drawFromTxt(0.3f, 5.5f, 0.12f, "shuttle_audio_credit.txt", std::vector<std::string>(),
+                creditafter, GLUT_BITMAP_8_BY_13, { 38, -1 });
+        }
+        drawTextCenter_menu(5.0f, 0.4f, "Up/Down arrow to switch pages", GLUT_BITMAP_9_BY_15);
+        drawTextCenter_menu(5.0f, 0.2f, "Press Backspace to go back", GLUT_BITMAP_9_BY_15);
+        break;
+    case Quit:
+        drawTextCenter_menu(5.0f, 3.0f, "Quitting...");
+        break;
+    };
+
     glutSwapBuffers();
 }
 
-// void idle() {
+// void idle() { // unused, old way to play audio
 //     playMainTheme();
 // }
+
+const float aspectRatio = 4.0 / 3.0;
+
+void reshape(int width, int height) {
+    // Keep the window dimensions fixed
+    glutReshapeWindow(800, 600);
+}
 
 int main(int argc, char** argv) {
     glutInit(&argc, argv);
@@ -434,17 +609,26 @@ int main(int argc, char** argv) {
     // Seed the random number generator with the current time
     srand(static_cast<unsigned>(time(nullptr)));
 
-    glOrtho(0.0, 10.0, 0.0, 6.0, -1.0, 1.0);
+    GLdouble rightOrtho = 10.0;
+    GLdouble topOrtho = 6.0;
+    glOrtho(0.0, rightOrtho, 0.0, topOrtho, -1.0, 1.0);
 
     glutDisplayFunc(display);
     // glutKeyboardFunc(keyboard);
     glutKeyboardFunc(keyboardDown);
     glutKeyboardUpFunc(keyboardUp);
+    glutSpecialFunc(specialKeys);
     // glutIdleFunc(idle);
+    glutReshapeFunc(reshape);
 
-    resetValues();
+    // resetValues();
 
     glutTimerFunc(0, update, 0);
+
+    buildInfo = "Compiled/built on ";
+    buildInfo += __DATE__;
+    buildInfo += " at ";
+    buildInfo += __TIME__;
 
     // Make icon for the game
     unsigned char* icon_data = GenerateIconData();
@@ -458,14 +642,17 @@ int main(int argc, char** argv) {
 
     delete[] icon_data; // deallocate memory for icon
 
-    // initializeShuttlecocks();
+    // initializeShuttlecocks(); // early testing for balancing
 
     scriptDir = std::filesystem::path(argv[0]).parent_path().string();
     // writeDebugText("scriptDir: " + scriptDir);
 
-    // printAudioFilePaths();
+    // printAudioFilePaths(); // testing
 
     initializeEveryAudio();
+
+    menuItem.calculateTextsCoordinate(rightOrtho / 2, topOrtho / 2, menuSpacing);
+    optionsItem.calculateTextsCoordinate(rightOrtho / 2, topOrtho / 2, menuSpacing);
 
     // spawnShuttlecock(0, 10.5f, 1.1f); // testing hitbox
 

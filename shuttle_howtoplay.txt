@@ -1,0 +1,13 @@
+Hit shuttlecock with your racket, survive and reach the highscore!
+
+Controls:
+W A S D : `W` to jump/double jump. `S` to fastfall/crouch.
+Space : Swing the racket
+Esc : Pause
+
+Tips:
+- Immediately jumping after releasing crouch button will result in high jump.
+- Hit the pink shuttlecock to score point
+- Dodge the gray shuttlecock as it can't be reflected
+- Don't hit the yellow shuttlecock with the racket, it can damage you
+- In the menu, you can use either up/down arrow or W and S key to navigate 
