@@ -100,6 +100,8 @@ std::vector<std::string> creditafter = { "","shuttle_knight.png by Ikhsan Ridwan
 "Additional credits and information can be read at https://github.com/etherealxx/shuttle-madness" };
 int creditpage = 1;
 
+std::string buildInfo;
+
 // float pinkColor[3] = { 1.0f, 0.0f, 0.5f };
 PlayerHitbox playerHitbox(playerX, playerY, playerSizeY, isKnightLoaded);
 
@@ -493,7 +495,7 @@ void gameDisplay() { // splitted from void display(), everything inside it befor
     }
     // drawPlayerHitbox(playerX, playerY, playerSizeY, true); // Debugging hitbox
     // playerHitbox.drawDummy(); // Debugging hitbox
-    float racketColor[3] = { 1.0, 1.0, 1.0 };
+    float racketColor[3] = { 1.0f, 1.0f, 1.0f };
     if (isSwingingRacket) {
         drawQuad(playerX + 1.35, playerY + 0.45, 0.7, 0.05, racketColor);
         drawHollowEllipse(playerX + 2.2, playerY + 0.5, 0.5, 0.3, 4, racketColor);
@@ -540,6 +542,8 @@ void gameDisplay() { // splitted from void display(), everything inside it befor
 void display() {
     glClear(GL_COLOR_BUFFER_BIT);
 
+    glColor3f(1.0f, 1.0f, 1.0f);
+
     switch (gameState) {
     case Play:
         gameDisplay();
@@ -550,6 +554,7 @@ void display() {
         drawTextCenter_menu(5.0f, 5.0f, "Shuttle Madness", GLUT_BITMAP_TIMES_ROMAN_24);
         menuItem.draw();
         drawTextCenter_menu(5.0f, 0.4f, "Press Enter to select", GLUT_BITMAP_9_BY_15);
+        drawText(0.2f, 5.8f, buildInfo, GLUT_BITMAP_8_BY_13, { 0.7f, 0.7f, 0.7f });
         // drawShuttlecock(5.0f, 3.0f, 90, 1.0f, pinkColor); // unused for background
         break;
     case How_to_Play:
@@ -619,6 +624,11 @@ int main(int argc, char** argv) {
     // resetValues();
 
     glutTimerFunc(0, update, 0);
+
+    buildInfo = "Compiled/built on ";
+    buildInfo += __DATE__;
+    buildInfo += " at ";
+    buildInfo += __TIME__;
 
     // Make icon for the game
     unsigned char* icon_data = GenerateIconData();

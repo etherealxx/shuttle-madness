@@ -31,8 +31,8 @@ g++.exe shuttle_madness.cpp -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32 -Wl,--
 - Hit the pink shuttlecock to score point, dodge the gray shuttlecock, and don't hit the yellow shuttlecock.
 
 ## Building the game
-- Download cmake from [here](https://cmake.org/download/) and install it. (Choose the Windows x64 Installer, recommended to install for all user).
-- **Note:** Apparently you need mingw64 from MSYS2 to build this game. I don't know why, but it wouldn't work when i tried to build it using the mingw32 from the `OpenGL Programming` folder. You can install MSYS2 from [here](https://github.com/msys2/msys2-installer/releases/download/2023-10-26/msys2-x86_64-20231026.exe)
+- Download `cmake` from [here](https://cmake.org/download/) and install it. (Choose the Windows x64 Installer, recommended to install for all user).
+- **Note:** Apparently you need `mingw64` from `MSYS2` to build this game. I don't know why, but it wouldn't work when i tried to build it using the `mingw32` from the `OpenGL Programming` folder. You can install MSYS2 from [here](https://github.com/msys2/msys2-installer/releases/download/2023-10-26/msys2-x86_64-20231026.exe)
 
 #### Python Method (assuming you installed one)
 - Run `cmakeautomate.py` inside the `tools` folder
@@ -40,7 +40,7 @@ g++.exe shuttle_madness.cpp -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32 -Wl,--
 
 #### Manual Method
 - Inside the repo folder, create a new folder named `build`
-- Download ninja-win.zip [from here](https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip)
+- Download `ninja-win.zip` [from here](https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip)
 - Extract it, put the `ninja.exe` inside the `build folder`
 - Launch command prompt (`cmd.exe`), change directory (`cd`) to the build folder
 - Type these in succesion
@@ -61,11 +61,17 @@ ninja
 - Visit `build` folder, the executable name is `ShuttleMadnessPortable.exe` (you can move it wherever you like)
 
 #### Manual Method (assuming you installed one)
-- Open the Enigma Virtual Box app.
+- Open the `Enigma Virtual Box` app.
 - Browse the input file name, choose the newly built `ShuttleMadness.exe`
 - Click `Add > Add File(s)`, choose every png and wav file inside the `build` folder
 - Click `Process` on the bottom right
 - Visit `build` folder, the executable name is `ShuttleMadnessPortable.exe` (you can move it wherever you like)
+
+## To-Dos
+- Make challenges (like how the way the shuttlecock spawns) as a reason for the player to not just stay on the bottom without jumping at all. (also challenges that utilizes ducking)
+- Make the directory clean (separate files into folders based on extension)
+- Figure out the build dependency problem
+- Static linking the `libfreeglut.dll`
 
 ## Attribution
 - `Arcade Music Loop.wav` by joshuaempyre on [freesound.org](https://freesound.org/people/joshuaempyre/sounds/251461/)
