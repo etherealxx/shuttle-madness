@@ -22,7 +22,7 @@ find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
 
 # Create the executable
-add_executable(ShuttleMadness ${SOURCES} ${HEADERS})
+add_executable(ShuttleMadness ${SOURCES} ${HEADERS} shuttle_icon.o)
 
 # Hide the console
 if (WIN32)
