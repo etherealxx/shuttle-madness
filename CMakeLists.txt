@@ -17,9 +17,6 @@ set(TEXTS
     shuttle_audio_credit.txt
 )
 
-# Add dll files
-file(GLOB DLL_FILES "*.dll")
-
 # Find OpenGL and GLUT packages
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
@@ -32,8 +29,21 @@ if (WIN32)
     set_target_properties(ShuttleMadness PROPERTIES WIN32_EXECUTABLE true)
 endif()
 
-# Link libraries
-target_link_libraries(ShuttleMadness PRIVATE OpenGL::GL GLUT::GLUT)
+# Link libraries statically
+target_link_libraries(ShuttleMadness PRIVATE
+    -static-libgcc
+    -static-libstdc++
+    -static # for libwinpthread-1.dll
+    OpenGL::GL
+    GLUT::GLUT
+)
+
+# Copy DLLs to the build directory
+add_custom_command(TARGET ShuttleMadness POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_SOURCE_DIR}/mingw32/bin/freeglut.dll"
+        $<TARGET_FILE_DIR:ShuttleMadness>
+)
 
 # Copy resource files to the build directory
 foreach(RESOURCE ${RESOURCES})
@@ -43,9 +53,4 @@ endforeach()
 # Copy text files to the build directory
 foreach(TEXT ${TEXTS})
     configure_file(${TEXT} ${CMAKE_BINARY_DIR} COPYONLY)
-endforeach()
-
-# Copy dll files to the build directory
-foreach(DLL_FILE ${DLL_FILES})
-    configure_file(${DLL_FILE} ${CMAKE_BINARY_DIR} COPYONLY)
 endforeach()
