@@ -1,5 +1,6 @@
 # Shuttle Madness
  OpenGL C++ game made with glut.h, [stb_image.h](https://github.com/nothings/stb) and [miniaudio.h](https://github.com/mackron/miniaudio). Third semester final project. For Windows only. The point of this project is to use only single file header libraries (other than GLUT and standard library) to make a presentable arcade game.
+
 <!--- ![image](https://github.com/etherealxx/shuttle-madness/assets/64251396/0bc9834d-fad1-4e6c-aa57-82a3e6d8e951) -->
 <!-- <p align="center">
   <img src="https://github.com/etherealxx/shuttle-madness/assets/64251396/0bc9834d-fad1-4e6c-aa57-82a3e6d8e951" alt="shuttle-madness" width="500"/>
@@ -32,18 +33,36 @@ g++.exe shuttle_madness.cpp -lfreeglut -lopengl32 -lglu32 -lwinmm -lgdi32 -Wl,--
 
 ## Building the game
 - Download `cmake` from [here](https://cmake.org/download/) and install it. (Choose the Windows x64 Installer, recommended to install for all user).
-- **Note:** Apparently you need `mingw64` from `MSYS2` to build this game. I don't know why, but it wouldn't work when i tried to build it using the `mingw32` from the `OpenGL Programming` folder. You can install MSYS2 from [here](https://github.com/msys2/msys2-installer/releases/download/2023-10-26/msys2-x86_64-20231026.exe)
+- Make sure that the `mingw32` folder from the previous guide is located properly inside the repo's folder (`shuttle-madness`)
+**or**
+- You can use your locally installed MSYS64 *if you have already installed one*.
+
+###### Note:
+I tried several dev tools and only MSYS64 which works (aside the above *mingw32 method*), my MSYS2 apparently can't. So for other build tools, you need to adjust the `CMakeLists.txt` manually. And to make things worse, the built executable from the MSYS64 method can't run on other device. So, just stick with the mingw32 method.
 
 #### Python Method (assuming you installed one)
-- Run `cmakeautomate.py` inside the `tools` folder
+- Run `cmakeautomate_mingw32.py` inside the `tools` folder
 - Go to newly made `build` folder, the executable name is `ShuttleMadness.exe` (it needs the png and wav files to be on the same directory as it). There will also a zip file that contains everything you need to run the game.
+
+###### Note:
+Use `cmakeautomate_msys64.py` instead if you want to use MSYS64 method.
 
 #### Manual Method
 - Inside the repo folder, create a new folder named `build`
 - Download `ninja-win.zip` [from here](https://github.com/ninja-build/ninja/releases/download/v1.11.1/ninja-win.zip)
 - Extract it, put the `ninja.exe` inside the `build folder`
 - Launch command prompt (`cmd.exe`), change directory (`cd`) to the build folder
-- Type these in succesion
+- Type these in succesion,
+
+if you're using mingw32 (default) method:
+```
+for %I in ("%CD%") do set "updir=%~dpI"
+set "updir=%updir:\=/%"
+cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM=%updir%build/ninja.exe -DCMAKE_PREFIX_PATH=%updir%mingw32 -DCMAKE_C_COMPILER=%updir%mingw32/bin/gcc.exe -DCMAKE_CXX_COMPILER=%updir%mingw32/bin/c++.exe ..
+cmake ..
+ninja
+```
+if you're using MSYS64 method:
 ```
 cmake -G "Ninja" -DCMAKE_MAKE_PROGRAM=ninja.exe ..
 cmake ..
@@ -63,14 +82,14 @@ ninja
 #### Manual Method (assuming you installed one)
 - Open the `Enigma Virtual Box` app.
 - Browse the input file name, choose the newly built `ShuttleMadness.exe`
-- Click `Add > Add File(s)`, choose every png and wav file inside the `build` folder
+- Click `Add > Add File(s)`, choose every `.png`, `.wav`, and `.dll` file inside the `build` folder. Also include `shuttle_howtoplay.txt` and `shuttle_audio_credit.txt`.
 - Click `Process` on the bottom right
 - Visit `build` folder, the executable name is `ShuttleMadnessPortable.exe` (you can move it wherever you like)
 
 ## To-Dos
 - Make challenges (like how the way the shuttlecock spawns) as a reason for the player to not just stay on the bottom without jumping at all. (also challenges that utilizes ducking)
 - Make the directory clean (separate files into folders based on extension)
-- Figure out the build dependency problem
+- ~~Figure out the build dependency problem~~
 - Static linking the `libfreeglut.dll`
 
 ## Attribution
@@ -115,3 +134,7 @@ Amplified by 15dB
 
 ## Special Thanks
 - Ikhsan Ridwan who made the `shuttle_knight.png` sprite
+<br/>
+
+###### Note:
+ The directory itself is messy since I thought I was just gonna use the single cpp file and the single file headers, but eventually i split the code into parts, and i added images, musics, and icon.
